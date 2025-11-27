@@ -1,0 +1,110 @@
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor and IDE Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Office and Document Files (keep templates, ignore temp files)
+~$*.docx
+~$*.xlsx
+~$*.pptx
+*.tmp
+*.temp
+
+# Log Files
+*.log
+logs/
+
+# Node.js (if any web tools are added)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python (if any analytics scripts are added)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Backup Files
+*.bak
+*.backup
+*.old
+
+# Cache and Temporary Files
+.cache/
+*.cache
+.tmp/
+temp/
+
+# Build Outputs (if any build tools are added)
+dist/
+build/
+out/
+
+# Database Files
+*.db
+*.sqlite
+*.sqlite3
+
+# Marketing Specific
+# Campaign data exports (keep structure, ignore sensitive data)
+campaigns/data/exports/
+campaigns/data/raw/
+analytics/data/exports/
+
+# Media files (large files should be handled separately)
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+*.webm
+*.zip
+*.rar
+*.7z
+
+# Sensitive Information
+secrets/
+private/
+credentials/
+*.pem
+*.key
+*.crt
+
+# Worktree specific (temporary worktree directories)
+worktrees/temp/
+worktrees/backup/
+
+# Ticket System - ignore resolved tickets archive
+.tickets/archive/
