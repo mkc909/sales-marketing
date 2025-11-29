@@ -147,10 +147,11 @@ export class ErrorTracker {
     };
 
     // Add user context if available
-    if (this.context.user) {
-      context.userId = this.context.user.id;
-      context.userType = this.context.user.type;
-      context.subscriptionTier = this.context.user.tier;
+    const ctx = this.context as any;
+    if (ctx.user) {
+      context.userId = ctx.user.id;
+      context.userType = ctx.user.type;
+      context.subscriptionTier = ctx.user.tier;
     }
 
     const fingerprint = this.generateFingerprint(errorObj, category);
@@ -401,7 +402,7 @@ export class ErrorTracker {
         operation,
         duration,
         this.context.request?.url || 'unknown',
-        this.context.user?.id || null
+        (this.context as any).user?.id || null
       ).run();
     }
   }
@@ -504,7 +505,7 @@ CREATE TABLE IF NOT EXISTS alert_history (
  * Error Analytics Dashboard Data
  */
 export class ErrorAnalytics {
-  constructor(private db: D1Database) {}
+  constructor(private db: D1Database) { }
 
   async getErrorSummary(hours: number = 24): Promise<any> {
     const since = Date.now() - (hours * 3600000);

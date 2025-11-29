@@ -17,9 +17,10 @@ export async function action({ params, context }: ActionFunctionArgs) {
     await trackPinShare(shortCode, context);
 
     // Optional: Send analytics event
-    if (context.env.ANALYTICS_ENDPOINT) {
+    const env = context.env as any;
+    if (env.ANALYTICS_ENDPOINT) {
       // Fire and forget analytics
-      fetch(context.env.ANALYTICS_ENDPOINT, {
+      fetch(env.ANALYTICS_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
