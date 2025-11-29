@@ -74,6 +74,6 @@ export const brands: Record<BrandId, BrandConfig> = {
   }
 };
 
-export function getThemeForBrand(brandId: string) {
+export function getBrandConfig(brandId: string) {
   return brands[brandId as BrandId] || brands.siteforge;
 }
