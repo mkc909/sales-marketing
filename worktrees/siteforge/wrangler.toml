@@ -1,0 +1,32 @@
+name = "estateflow"
+compatibility_date = "2024-11-28"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "build/client"
+
+[env.production]
+vars = { ENVIRONMENT = "production" }
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "estateflow-db"
+database_id = "857b7e12-732f-4f8e-9c07-2f1482a5b76c"
+
+[[env.production.kv_namespaces]]
+binding = "LINKS"
+id = "ec019d5680f947a3a0168d9ae49538a0"
+
+[[env.production.kv_namespaces]]
+binding = "PINS"
+id = "32fa94570ef447adab5164ad83f1472b"
+
+[[env.production.kv_namespaces]]
+binding = "CACHE"
+id = "3b7a129d1c834cad988a406cff5d9e45"
+
+[[env.production.kv_namespaces]]
+binding = "ANALYTICS_BUFFER"
+id = "f3019821e7b64f1aa9650c1edacb6f1f"
+
+[[env.production.r2_buckets]]
+binding = "ESTATEFLOW_ASSETS"
+bucket_name = "estateflow-assets"

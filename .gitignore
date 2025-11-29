@@ -108,3 +108,11 @@ worktrees/backup/
 
 # Ticket System - ignore resolved tickets archive
 .tickets/archive/
+
+# AI Assistant Directories - ignore temporary AI-generated files
+.ai/
+.claude/
+
+# Cloudflare Wrangler - ignore temporary and state files
+.wrangler/state/
+.wrangler/tmp/

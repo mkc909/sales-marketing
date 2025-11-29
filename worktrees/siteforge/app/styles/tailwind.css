@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: theme('colors.blue.600');
+    --color-secondary: theme('colors.amber.500');
+  }
+
+  /* Industry-specific CSS variables */
+  [data-industry="plumber"] {
+    --color-primary: theme('colors.plumber.primary');
+    --color-secondary: theme('colors.plumber.secondary');
+  }
+
+  [data-industry="hvac"] {
+    --color-primary: theme('colors.hvac.primary');
+    --color-secondary: theme('colors.hvac.secondary');
+  }
+
+  [data-industry="landscaper"] {
+    --color-primary: theme('colors.landscaper.primary');
+    --color-secondary: theme('colors.landscaper.secondary');
+  }
+
+  [data-industry="electrician"] {
+    --color-primary: theme('colors.electrician.primary');
+    --color-secondary: theme('colors.electrician.secondary');
+  }
+
+  [data-industry="roofer"] {
+    --color-primary: theme('colors.roofer.primary');
+    --color-secondary: theme('colors.roofer.secondary');
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-md bg-[var(--color-primary)] px-6 py-3 text-base font-semibold text-white shadow-sm transition-all hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-6 py-3 text-base font-semibold text-gray-700 shadow-sm transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2;
+  }
+
+  .section-container {
+    @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .heading-xl {
+    @apply text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl md:text-6xl;
+  }
+
+  .heading-lg {
+    @apply text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl;
+  }
+
+  .heading-md {
+    @apply text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl;
+  }
+
+  .text-lead {
+    @apply text-lg text-gray-600 sm:text-xl;
+  }
+}

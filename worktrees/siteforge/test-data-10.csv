@@ -1,0 +1,11 @@
+id,name,license_number,email,phone,industry,state,city
+1,John Smith,RE123456,john@example.com,555-0001,real_estate,FL,Miami
+2,Jane Doe,RE123457,jane@example.com,555-0002,real_estate,FL,Orlando
+3,Bob Johnson,LAW98765,bob@example.com,555-0003,legal,FL,Tampa
+4,Alice Brown,INS45678,alice@example.com,555-0004,insurance,FL,Jacksonville
+5,Charlie Wilson,MTG34567,charlie@example.com,555-0005,mortgage,FL,Miami
+6,Diana Martinez,FIN23456,diana@example.com,555-0006,financial,FL,Orlando
+7,Eric Garcia,CON12345,eric@example.com,555-0007,contractor,FL,Tampa
+8,Frank Lopez,RE123458,frank@example.com,555-0008,real_estate,TX,Houston
+9,Grace Kim,LAW98766,grace@example.com,555-0009,legal,TX,Dallas
+10,Henry Chen,INS45679,henry@example.com,555-0010,insurance,TX,Austin

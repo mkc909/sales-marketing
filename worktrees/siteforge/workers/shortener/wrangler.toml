@@ -1,0 +1,36 @@
+name = "estateflow-shortener"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+# KV Namespaces for storage
+kv_namespaces = [
+  { binding = "LINKS", id = "shortlink_store", preview_id = "shortlink_store_preview" },
+  { binding = "ANALYTICS", id = "click_analytics", preview_id = "click_analytics_preview" }
+]
+
+# D1 Database for complex queries
+[[d1_databases]]
+binding = "DB"
+database_name = "estateflow-analytics"
+database_id = "YOUR_DATABASE_ID_HERE"
+
+# Environment variables
+[vars]
+POSTHOG_KEY = "YOUR_POSTHOG_KEY_HERE"
+ADMIN_KEY = "YOUR_ADMIN_KEY_HERE"
+
+# Production route
+[env.production]
+routes = [
+  "est.at/*"
+]
+
+# Staging route
+[env.staging]
+routes = [
+  "staging.est.at/*"
+]
+
+# Development settings
+[env.development]
+vars = { POSTHOG_KEY = "", ADMIN_KEY = "dev-key-123" }

@@ -1,0 +1,176 @@
+# EstateFlow Multi-Industry Platform - Cloudflare Workers Configuration
+# Supports Real Estate, Legal, Insurance, Mortgage, Financial, Contractors
+
+name = "estateflow"
+compatibility_date = "2024-11-28"
+pages_build_output_dir = "build/client"
+compatibility_flags = ["nodejs_compat"]
+
+# Environment Variables
+[vars]
+ENVIRONMENT = "production"
+PLATFORM_URL = "https://estateflow.com"
+REGION = "US"
+DEFAULT_LOCALE = "en"
+SESSION_SECRET = "your-session-secret-here-change-this"
+POSTHOG_HOST = "https://app.posthog.com"
+
+# Primary domain branding per region
+PR_DOMAIN = "pinexacto.com"
+US_DOMAIN = "truepoint.app"
+MAIN_DOMAIN = "estateflow.com"
+
+# D1 Database Bindings
+[[d1_databases]]
+binding = "DB"
+database_name = "estateflow-db"
+database_id = "857b7e12-732f-4f8e-9c07-2f1482a5b76c"
+
+# KV Namespace bindings for caching and short URLs
+[[kv_namespaces]]
+binding = "LINKS"
+id = "ec019d5680f947a3a0168d9ae49538a0"
+
+[[kv_namespaces]]
+binding = "PINS"
+id = "32fa94570ef447adab5164ad83f1472b"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "3b7a129d1c834cad988a406cff5d9e45"
+
+[[kv_namespaces]]
+binding = "ANALYTICS_BUFFER"
+id = "f3019821e7b64f1aa9650c1edacb6f1f"
+
+# R2 Storage Bindings
+[[r2_buckets]]
+binding = "ESTATEFLOW_ASSETS"
+bucket_name = "estateflow-assets"
+
+[[r2_buckets]]
+binding = "PROFILE_PHOTOS"
+bucket_name = "profile-photos"
+
+[[r2_buckets]]
+binding = "PROPERTY_IMAGES"
+bucket_name = "property-images"
+
+[[r2_buckets]]
+binding = "DOCUMENTS"
+bucket_name = "documents"
+
+[[r2_buckets]]
+binding = "QR_CODES"
+bucket_name = "qr-codes"
+
+# Workers AI Binding
+[ai]
+binding = "AI"
+
+# Analytics Engine
+[analytics]
+enabled = true
+
+# Durable Objects for real-time features
+[[durable_objects.bindings]]
+name = "SESSION"
+class_name = "SessionManager"
+script_name = "estateflow"
+
+[[durable_objects.bindings]]
+name = "RATE_LIMITER"
+class_name = "RateLimiter"
+script_name = "estateflow"
+
+# Service bindings for microservices
+[[services]]
+binding = "SHORTENER"
+service = "estateflow-shortener"
+
+[[services]]
+binding = "QR_GENERATOR"
+service = "estateflow-qr"
+
+[[services]]
+binding = "AGENT_INGESTION"
+service = "estateflow-ingestion"
+
+# Tail consumers for error tracking
+[[tail_consumers]]
+service = "error-processor"
+
+# Custom Domains and Routes
+[env.production]
+routes = [
+  { pattern = "estateflow.com/*", custom_domain = true },
+  { pattern = "*.estateflow.com/*", custom_domain = true },
+  { pattern = "pinexacto.com/*", custom_domain = true },
+  { pattern = "truepoint.app/*", custom_domain = true },
+  { pattern = "est.at/*", custom_domain = true }  # Short URL domain
+]
+
+# Staging environment
+[env.staging]
+name = "estateflow-staging"
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
+PLATFORM_URL = "https://staging.estateflow.com"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "estateflow-staging-db"
+database_id = ""
+
+# Development environment
+[env.development]
+name = "estateflow-dev"
+
+[env.development.vars]
+ENVIRONMENT = "development"
+PLATFORM_URL = "http://localhost:8788"
+
+# Site configuration
+[site]
+bucket = "./build/client"
+
+# Build configuration
+[build]
+command = "npm run build"
+
+# Development server settings
+[dev]
+port = 8788
+local_protocol = "https"
+ip = "0.0.0.0"
+
+# Cron triggers for scheduled tasks
+[triggers]
+crons = [
+  # Daily error report at 2 AM UTC
+  "0 2 * * *",
+  # Professional data sync every Monday at 3 AM UTC
+  "0 3 * * 1",
+  # Content rotation daily at 4 AM UTC
+  "0 4 * * *",
+  # Lead distribution every 15 minutes
+  "*/15 * * * *"
+]
+
+# CPU limits
+[limits]
+cpu_ms = 50
+
+# Observability
+[observability]
+enabled = true
+
+# Placement hints for geographic optimization
+[placement]
+mode = "smart"
+
+# For Puerto Rico edge location
+# [placement]
+# mode = "regional"
+# region = "americas"
