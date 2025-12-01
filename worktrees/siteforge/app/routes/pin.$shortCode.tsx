@@ -11,7 +11,7 @@ import {
   Phone, Clock, Car, ChevronRight, QrCode, Star
 } from "lucide-react";
 import { getPinByShortCode, trackPinNavigation, trackPinShare } from "~/models/pin.server";
-import { getBrandConfig } from "~/lib/branding";
+import { getBrandConfig } from "~/config/theme";
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
   const { shortCode } = params;
@@ -328,11 +328,10 @@ export default function PublicPin() {
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    className={`w-4 h-4 ${
-                      i < Math.floor(business.rating)
+                    className={`w-4 h-4 ${i < Math.floor(business.rating)
                         ? 'fill-yellow-400 text-yellow-400'
                         : 'text-gray-300'
-                    }`}
+                      }`}
                   />
                 ))}
                 <span className="ml-2 text-sm text-gray-600">

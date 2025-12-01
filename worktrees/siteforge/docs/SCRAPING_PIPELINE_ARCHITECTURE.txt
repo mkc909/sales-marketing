@@ -1,0 +1,388 @@
+================================================================================
+ESTATEFLOW SCRAPING PIPELINE - SYSTEM ARCHITECTURE
+================================================================================
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│                          SCRAPING SOURCES                                │
+├──────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  ┌────────────────────────┐         ┌────────────────────────┐          │
+│  │   Google Maps API      │         │   Facebook Graph API   │          │
+│  │   ----------------     │         │   ------------------   │          │
+│  │   Places API           │         │   Public Pages         │          │
+│  │   Rate: 100 req/hour   │         │   Rate: 200 req/hour   │          │
+│  │   Quota: 28.5k/month   │         │   Quota: Unlimited     │          │
+│  └───────────┬────────────┘         └───────────┬────────────┘          │
+│              │                                   │                       │
+│              │  google-maps-scraper.js          │  facebook-scraper.js  │
+│              │  (36s between requests)          │  (18s between requests)│
+│              └──────────────┬────────────────────┘                       │
+└─────────────────────────────┼────────────────────────────────────────────┘
+                              │
+                              ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│                     DB_INGEST (Raw Data Layer)                           │
+├──────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  ┌────────────────────────────────────────────────────────────┐         │
+│  │ raw_business_data                                          │         │
+│  │ ─────────────────                                          │         │
+│  │ - source (google_maps/facebook)                            │         │
+│  │ - name, address, city, state                               │         │
+│  │ - phone, email, website, facebook_url                      │         │
+│  │ - latitude, longitude, place_id                            │         │
+│  │ - category, hours, rating, reviews                         │         │
+│  │ - raw_data (JSON - full API response)                      │         │
+│  │ - status (new/processed/enriched/rejected)                 │         │
+│  └────────────────────────────────────────────────────────────┘         │
+│                                                                          │
+│  ┌──────────────────────┐  ┌──────────────────────┐                     │
+│  │ scraping_jobs        │  │ api_usage            │                     │
+│  │ ─────────────        │  │ ─────────            │                     │
+│  │ - job_type           │  │ - api_provider       │                     │
+│  │ - search_query       │  │ - status_code        │                     │
+│  │ - status             │  │ - success            │                     │
+│  │ - total_processed    │  │ - rate_limit_reset   │                     │
+│  │ - results_summary    │  │ - estimated_cost     │                     │
+│  └──────────────────────┘  └──────────────────────┘                     │
+│                                                                          │
+└────────────────────────────────┬─────────────────────────────────────────┘
+                                 │
+                                 ▼
+                        ┌─────────────────┐
+                        │  ICP Detector   │
+                        │  ─────────────  │
+                        │  icp-detector.js│
+                        │                 │
+                        │  Detects:       │
+                        │  • No website   │
+                        │  • Unmappable   │
+                        │  • Mobile biz   │
+                        │  • Ghost biz    │
+                        │  • Complex addr │
+                        │                 │
+                        │  Accuracy: 90%+ │
+                        └────────┬────────┘
+                                 │
+                                 ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│                   DB_STAGING (Enriched Leads Layer)                      │
+├──────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  ┌────────────────────────────────────────────────────────────┐         │
+│  │ icp_signals                                                │         │
+│  │ ───────────                                                │         │
+│  │ - raw_business_id (FK to raw_business_data)                │         │
+│  │ - no_website (BOOL)                                        │         │
+│  │ - unmappable_address (BOOL)                                │         │
+│  │ - mobile_business (BOOL)                                   │         │
+│  │ - ghost_business (BOOL)                                    │         │
+│  │ - complex_address (BOOL)                                   │         │
+│  │ - address_complexity_score (0-100)                         │         │
+│  │ - findability_score (0-100)                                │         │
+│  │ - icp_score (0-100)                                        │         │
+│  │ - icp_category (high/medium/low)                           │         │
+│  │ - signals (JSON - detailed breakdown)                      │         │
+│  └────────────────────────────────────────────────────────────┘         │
+│                                                                          │
+│                                 │                                        │
+│                                 ▼                                        │
+│                        ┌─────────────────┐                               │
+│                        │ Enrich Pipeline │                               │
+│                        │ ─────────────── │                               │
+│                        │ enrichment-     │                               │
+│                        │ pipeline.js     │                               │
+│                        │                 │                               │
+│                        │ Validates:      │                               │
+│                        │ • Phone (E.164) │                               │
+│                        │ • Email         │                               │
+│                        │ • Address       │                               │
+│                        │ • Social media  │                               │
+│                        │ • Business info │                               │
+│                        └────────┬────────┘                               │
+│                                 │                                        │
+│                                 ▼                                        │
+│  ┌────────────────────────────────────────────────────────────┐         │
+│  │ enriched_leads                                             │         │
+│  │ ──────────────                                             │         │
+│  │ - raw_business_id (FK)                                     │         │
+│  │ - business_name, normalized_address                        │         │
+│  │ - validated_phone, validated_email                         │         │
+│  │ - facebook_url, facebook_followers                         │         │
+│  │ - facebook_engagement_rate                                 │         │
+│  │ - verified_business, has_google_reviews                    │         │
+│  │ - average_rating, total_reviews                            │         │
+│  │ - is_mobile_service                                        │         │
+│  │ - enrichment_sources (JSON)                                │         │
+│  │ - enrichment_confidence (0-1)                              │         │
+│  │ - lead_score (0-100)                                       │         │
+│  │ - lead_grade (A/B/C/D)                                     │         │
+│  │ - conversion_probability (0-1)                             │         │
+│  │ - status (enriched/validated/ready/rejected)               │         │
+│  └────────────────────────────────────────────────────────────┘         │
+│                                                                          │
+│  ┌──────────────────────┐                                                │
+│  │ lead_conversions     │                                                │
+│  │ ────────────────     │                                                │
+│  │ - event_type         │                                                │
+│  │ - conversion_source  │                                                │
+│  │ - visitor_id         │                                                │
+│  └──────────────────────┘                                                │
+│                                                                          │
+└────────────────────────────────┬─────────────────────────────────────────┘
+                                 │
+                                 ▼
+                        ┌─────────────────┐
+                        │ Ghost Profile   │
+                        │ Generator       │
+                        │ ─────────────── │
+                        │ ghost-profile-  │
+                        │ generator.js    │
+                        │                 │
+                        │ Generates:      │
+                        │ • SEO meta tags │
+                        │ • Schema.org    │
+                        │ • URL slugs     │
+                        │ • Descriptions  │
+                        │ • Claim CTAs    │
+                        └────────┬────────┘
+                                 │
+                                 ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│                    DB_PROD (Ghost Profiles Layer)                        │
+├──────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  ┌────────────────────────────────────────────────────────────┐         │
+│  │ ghost_profiles                                             │         │
+│  │ ──────────────                                             │         │
+│  │ - enriched_lead_id (FK to enriched_leads)                  │         │
+│  │ - business_name, slug, display_name                        │         │
+│  │ - address, city, state, postal_code                        │         │
+│  │ - latitude, longitude                                      │         │
+│  │ - phone, formatted_phone, email, website                   │         │
+│  │ - primary_category, categories, services                   │         │
+│  │ - description, about, specialties, service_areas           │         │
+│  │ - meta_title, meta_description, keywords                   │         │
+│  │ - schema_org (JSON - LocalBusiness markup)                 │         │
+│  │ - rating, review_count, years_in_business                  │         │
+│  │ - logo_url, cover_image_url, photos                        │         │
+│  │ - is_claimed, claimed_at, claimed_by_user_id               │         │
+│  │ - view_count, click_count, claim_request_count             │         │
+│  │ - published, published_at                                  │         │
+│  └────────────────────────────────────────────────────────────┘         │
+│                                                                          │
+└────────────────────────────────┬─────────────────────────────────────────┘
+                                 │
+                                 ▼
+                        ┌─────────────────┐
+                        │ Public Website  │
+                        │ ─────────────── │
+                        │ EstateFlow      │
+                        │                 │
+                        │ Routes:         │
+                        │ /plumber/       │
+                        │ business-slug   │
+                        │                 │
+                        │ Features:       │
+                        │ • SEO optimized │
+                        │ • Schema markup │
+                        │ • Claim CTAs    │
+                        │ • Analytics     │
+                        └─────────────────┘
+
+================================================================================
+PIPELINE ORCHESTRATOR FLOW
+================================================================================
+
+scraping-orchestrator.js coordinates entire pipeline:
+
+Step 1: SCRAPING
+  ├─> Google Maps Scraper (100 businesses/hour)
+  ├─> Facebook Scraper (200 calls/hour)
+  └─> Results: 30-50 businesses per search
+
+Step 2: ICP DETECTION
+  ├─> Analyze all scraped businesses
+  ├─> Calculate ICP scores (0-100)
+  ├─> Categorize: High (70+), Medium (40-69), Low (0-39)
+  └─> Results: ~50% high ICP matches
+
+Step 3: ENRICHMENT
+  ├─> Enrich high-value leads only (ICP >= 40)
+  ├─> Validate phone, discover email
+  ├─> Calculate lead score (0-100)
+  ├─> Assign grade: A/B/C/D
+  └─> Results: ~30% Grade A, ~40% Grade B
+
+Step 4: PROFILE GENERATION
+  ├─> Generate profiles for Grade A/B only
+  ├─> Create SEO content and Schema.org
+  ├─> Generate URL slugs
+  └─> Results: 20-30% conversion (scraped → profile)
+
+Step 5: REPORTING
+  ├─> Total scraped
+  ├─> ICP match rate
+  ├─> Lead grade distribution
+  ├─> Profile generation rate
+  └─> Throughput metrics
+
+================================================================================
+DAILY AUTOMATION WORKFLOW
+================================================================================
+
+Cron/Task Scheduler (2 AM daily)
+  │
+  ├─> Search 1: "plumber" in "San Juan, PR"
+  │   └─> Scrape → ICP → Enrich → Profile
+  │
+  ├─> Wait 5 minutes (rate limit cooldown)
+  │
+  ├─> Search 2: "electrician" in "Bayamón, PR"
+  │   └─> Scrape → ICP → Enrich → Profile
+  │
+  ├─> Wait 5 minutes
+  │
+  ├─> Search 3: "food truck" in "Ponce, PR"
+  │   └─> Scrape → ICP → Enrich → Profile
+  │
+  ├─> Wait 5 minutes
+  │
+  ├─> Search 4: "landscaper" in "Caguas, PR"
+  │   └─> Scrape → ICP → Enrich → Profile
+  │
+  ├─> Wait 5 minutes
+  │
+  └─> Search 5: "contractor" in "Carolina, PR"
+      └─> Scrape → ICP → Enrich → Profile
+
+Total Duration: ~2.5 hours
+Total Profiles: 30-50 per day
+Monthly Profiles: 900-1,500
+
+================================================================================
+KEY METRICS & TARGETS
+================================================================================
+
+┌─────────────────────┬─────────────┬──────────────┬────────────┐
+│ Metric              │ Target      │ Component    │ Check SQL  │
+├─────────────────────┼─────────────┼──────────────┼────────────┤
+│ Scraping Rate       │ 100/hour    │ Google Maps  │ api_usage  │
+│ ICP Accuracy        │ 90%+        │ ICP Detector │ icp_signals│
+│ High ICP Match      │ 30-50%      │ ICP Detector │ icp_signals│
+│ Lead Enrichment     │ 100%        │ Enrichment   │ enriched_  │
+│                     │             │              │ leads      │
+│ Grade A Leads       │ 30%         │ Enrichment   │ enriched_  │
+│                     │             │              │ leads      │
+│ Profile Conversion  │ 20-30%      │ Generator    │ ghost_     │
+│                     │             │              │ profiles   │
+│ Daily Profiles      │ 30-50       │ Full Pipeline│ ghost_     │
+│                     │             │              │ profiles   │
+│ API Cost            │ Free tier   │ All          │ api_usage  │
+└─────────────────────┴─────────────┴──────────────┴────────────┘
+
+================================================================================
+DATABASE VIEWS (Quick Access)
+================================================================================
+
+high_value_leads
+  ├─> Grade A/B leads
+  ├─> ICP score >= 70
+  ├─> Status = 'ready'
+  └─> Ordered by lead_score DESC
+
+publishable_profiles
+  ├─> Unpublished profiles
+  ├─> Has meta_title and schema_org
+  ├─> Grade A/B leads only
+  └─> Ordered by lead_score DESC
+
+job_performance
+  ├─> Grouped by job_type
+  ├─> Total jobs, completed, failed
+  ├─> Total records processed
+  └─> Average duration
+
+================================================================================
+API QUOTAS & RATE LIMITS
+================================================================================
+
+Google Maps API
+  ├─> Free Tier: 28,500 requests/month
+  ├─> Pipeline Rate: 100 requests/hour
+  ├─> Daily Max: 2,400 requests (24 hours × 100/hour)
+  ├─> Cost Beyond Free: $5 per 1,000 requests
+  └─> Alert Threshold: 22,800/month (80%)
+
+Facebook Graph API
+  ├─> Free Tier: Unlimited (with rate limits)
+  ├─> Pipeline Rate: 200 calls/hour
+  ├─> Rate Limits: 200/hour/user, 600/hour/app
+  ├─> Cost: Free for public data
+  └─> No quota alerts needed
+
+Hunter.io (Optional)
+  ├─> Free Tier: 25 searches/month
+  ├─> Paid: $49/month for 500 searches
+  ├─> Usage: Email enrichment only
+  └─> Recommendation: Disabled by default
+
+================================================================================
+REVENUE MODEL (90-Day Projection)
+================================================================================
+
+Day 1-30: 30 profiles/day × 30 days = 900 profiles
+  ├─> Claims: 18 (2% rate)
+  ├─> Paid: 9 (50% conversion)
+  └─> MRR: $441 (9 × $49)
+
+Day 31-60: 30 profiles/day × 30 days = 900 profiles (1,800 total)
+  ├─> Claims: 36 total
+  ├─> Paid: 18 total
+  └─> MRR: $882
+
+Day 61-90: 30 profiles/day × 30 days = 900 profiles (2,700 total)
+  ├─> Claims: 54 total
+  ├─> Paid: 27 total
+  └─> MRR: $1,323
+
+Year 1 (Multi-Market): 100 profiles/day × 365 days = 36,500 profiles
+  ├─> Claims: 730 (2% rate)
+  ├─> Paid: 365 (50% conversion)
+  └─> MRR: $17,885 (ARR: $214,620)
+
+================================================================================
+MONITORING COMMANDS
+================================================================================
+
+Check Pipeline Health:
+  npm run scrape:stats
+
+View High-Value Leads:
+  wrangler d1 execute estateflow-db --command="SELECT * FROM high_value_leads LIMIT 20"
+
+Check API Usage (Last 7 Days):
+  wrangler d1 execute estateflow-db --command="
+    SELECT api_provider, COUNT(*) as calls, SUM(success) as successful
+    FROM api_usage WHERE created_at >= date('now', '-7 days')
+    GROUP BY api_provider"
+
+View Job History:
+  wrangler d1 execute estateflow-db --command="
+    SELECT id, job_name, status, total_processed, total_success
+    FROM scraping_jobs ORDER BY created_at DESC LIMIT 10"
+
+Real-Time Error Monitoring:
+  npm run monitor:errors
+
+================================================================================
+SUPPORT & DOCUMENTATION
+================================================================================
+
+Full Guide:       docs/SCRAPING_PIPELINE_GUIDE.md (40 pages)
+Quick Reference:  scripts/README.md
+Checklist:        docs/SCRAPING_PIPELINE_CHECKLIST.md
+Summary:          docs/EPIC-002_IMPLEMENTATION_SUMMARY.md
+Schema:           migrations/005_scraping_pipeline.sql
+
+================================================================================

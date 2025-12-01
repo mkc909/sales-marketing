@@ -839,6 +839,449 @@ export const industries: Record<string, IndustryConfig> = {
         priceRange: '$50-$100/mo'
       }
     ]
+  },
+
+  // ============================================
+  // ADDITIONAL PROFESSIONAL SERVICES
+  // ============================================
+  'attorney': {
+    id: 'attorney',
+    name: 'Attorney',
+    namePlural: 'Attorneys',
+    category: 'professional',
+    keywords: ['attorney', 'lawyer', 'legal', 'law', 'consultation', 'representation'],
+    description: 'Professional legal services and consultation',
+
+    headline: {
+      es: "Abogado Profesional - Asesoría Legal Experta",
+      en: "Professional Attorney - Expert Legal Counsel"
+    },
+    subheadline: {
+      es: "Consultas legales directas, respuesta inmediata",
+      en: "Direct legal consultations, immediate response"
+    },
+    painPoints: {
+      es: [
+        "Dificultad para encontrar abogado especializado",
+        "Consultas caras sin compromiso",
+        "Procesos legales sin claridad de costos"
+      ],
+      en: [
+        "Difficulty finding specialized attorney",
+        "Expensive consultations without commitment",
+        "Legal processes without cost clarity"
+      ]
+    },
+
+    icon: 'Scale',
+    primaryColor: '#1e40af',
+    features: ['free-consultation', 'specialized-practice', 'flexible-payment', 'bilingual'],
+    avgJobValue: 2500,
+    urgencyLevel: 'medium',
+    leadFormFields: ['name', 'phone', 'email', 'legal_issue', 'urgency'],
+
+    services: [
+      {
+        id: 'consultation',
+        name: { es: 'Consulta Inicial', en: 'Initial Consultation' },
+        priceRange: '$100-$300'
+      },
+      {
+        id: 'family-law',
+        name: { es: 'Derecho Familiar', en: 'Family Law' },
+        priceRange: '$1500-$10000'
+      },
+      {
+        id: 'real-estate-law',
+        name: { es: 'Derecho Inmobiliario', en: 'Real Estate Law' },
+        priceRange: '$500-$5000'
+      }
+    ]
+  },
+
+  'insurance-agent': {
+    id: 'insurance-agent',
+    name: 'Insurance Agent',
+    namePlural: 'Insurance Agents',
+    category: 'professional',
+    keywords: ['insurance', 'coverage', 'policy', 'auto', 'home', 'life', 'health'],
+    description: 'Insurance coverage and policy consultation',
+
+    headline: {
+      es: "Agente de Seguros - Protección Completa",
+      en: "Insurance Agent - Complete Protection"
+    },
+    subheadline: {
+      es: "Compara pólizas y ahorra sin intermediarios",
+      en: "Compare policies and save without middlemen"
+    },
+    painPoints: {
+      es: [
+        "Pólizas confusas y sobreprecio",
+        "Agentes que no responden rápido",
+        "Dificultad comparando opciones"
+      ],
+      en: [
+        "Confusing policies and overpricing",
+        "Agents who don't respond quickly",
+        "Difficulty comparing options"
+      ]
+    },
+
+    icon: 'Shield',
+    primaryColor: '#059669',
+    features: ['multi-carrier', 'free-quotes', 'bilingual-service', 'claims-support'],
+    avgJobValue: 1200,
+    urgencyLevel: 'medium',
+    leadFormFields: ['name', 'phone', 'email', 'insurance_type', 'current_coverage'],
+
+    services: [
+      {
+        id: 'auto-insurance',
+        name: { es: 'Seguro de Auto', en: 'Auto Insurance' },
+        priceRange: '$500-$3000/year'
+      },
+      {
+        id: 'home-insurance',
+        name: { es: 'Seguro de Hogar', en: 'Home Insurance' },
+        priceRange: '$800-$5000/year'
+      },
+      {
+        id: 'life-insurance',
+        name: { es: 'Seguro de Vida', en: 'Life Insurance' },
+        priceRange: '$300-$2000/year'
+      }
+    ]
+  },
+
+  'mortgage-broker': {
+    id: 'mortgage-broker',
+    name: 'Mortgage Broker',
+    namePlural: 'Mortgage Brokers',
+    category: 'professional',
+    keywords: ['mortgage', 'loan', 'refinance', 'home loan', 'pre-approval', 'financing'],
+    description: 'Mortgage financing and loan services',
+
+    headline: {
+      es: "Corredor de Hipotecas - Tasas Bajas Garantizadas",
+      en: "Mortgage Broker - Low Rates Guaranteed"
+    },
+    subheadline: {
+      es: "Pre-aprobación en 24 horas, cierre rápido",
+      en: "Pre-approval in 24 hours, fast closing"
+    },
+    painPoints: {
+      es: [
+        "Proceso de aprobación lento",
+        "Tasas de interés altas",
+        "Documentación confusa"
+      ],
+      en: [
+        "Slow approval process",
+        "High interest rates",
+        "Confusing documentation"
+      ]
+    },
+
+    icon: 'Home',
+    primaryColor: '#dc2626',
+    features: ['multiple-lenders', 'fast-approval', 'low-rates', 'spanish-support'],
+    avgJobValue: 5000,
+    urgencyLevel: 'medium',
+    leadFormFields: ['name', 'phone', 'email', 'loan_type', 'loan_amount', 'credit_score'],
+
+    services: [
+      {
+        id: 'purchase-loan',
+        name: { es: 'Préstamo de Compra', en: 'Purchase Loan' },
+        priceRange: '2.5-4% fee'
+      },
+      {
+        id: 'refinance',
+        name: { es: 'Refinanciamiento', en: 'Refinance' },
+        priceRange: '1-3% fee'
+      },
+      {
+        id: 'pre-approval',
+        name: { es: 'Pre-aprobación', en: 'Pre-Approval' },
+        priceRange: 'Free'
+      }
+    ]
+  },
+
+  'financial-advisor': {
+    id: 'financial-advisor',
+    name: 'Financial Advisor',
+    namePlural: 'Financial Advisors',
+    category: 'professional',
+    keywords: ['financial', 'advisor', 'investment', 'retirement', 'wealth', 'planning'],
+    description: 'Financial planning and investment advisory services',
+
+    headline: {
+      es: "Asesor Financiero - Planifica Tu Futuro",
+      en: "Financial Advisor - Plan Your Future"
+    },
+    subheadline: {
+      es: "Inversiones inteligentes, retiro seguro",
+      en: "Smart investments, secure retirement"
+    },
+    painPoints: {
+      es: [
+        "No sabes dónde invertir",
+        "Planes de retiro confusos",
+        "Falta de asesoría personalizada"
+      ],
+      en: [
+        "Don't know where to invest",
+        "Confusing retirement plans",
+        "Lack of personalized advice"
+      ]
+    },
+
+    icon: 'TrendingUp',
+    primaryColor: '#f59e0b',
+    features: ['personalized-plans', 'retirement-planning', 'investment-management', 'tax-optimization'],
+    avgJobValue: 3000,
+    urgencyLevel: 'low',
+    leadFormFields: ['name', 'phone', 'email', 'investment_amount', 'goals', 'timeline'],
+
+    services: [
+      {
+        id: 'financial-plan',
+        name: { es: 'Plan Financiero', en: 'Financial Plan' },
+        priceRange: '$500-$2000'
+      },
+      {
+        id: 'investment-management',
+        name: { es: 'Gestión de Inversiones', en: 'Investment Management' },
+        priceRange: '1% AUM'
+      },
+      {
+        id: 'retirement-planning',
+        name: { es: 'Planificación de Retiro', en: 'Retirement Planning' },
+        priceRange: '$1000-$5000'
+      }
+    ]
+  },
+
+  'accountant': {
+    id: 'accountant',
+    name: 'Accountant',
+    namePlural: 'Accountants',
+    category: 'professional',
+    keywords: ['accountant', 'cpa', 'taxes', 'bookkeeping', 'audit', 'payroll'],
+    description: 'Accounting, tax preparation, and bookkeeping services',
+
+    headline: {
+      es: "Contador Certificado - Maximiza Tu Reembolso",
+      en: "Certified Accountant - Maximize Your Refund"
+    },
+    subheadline: {
+      es: "Preparación de taxes profesional, sin sorpresas",
+      en: "Professional tax preparation, no surprises"
+    },
+    painPoints: {
+      es: [
+        "Preparación de taxes estresante",
+        "Miedo al IRS por errores",
+        "Deducciones perdidas"
+      ],
+      en: [
+        "Stressful tax preparation",
+        "Fear of IRS from errors",
+        "Lost deductions"
+      ]
+    },
+
+    icon: 'Calculator',
+    primaryColor: '#0f172a',
+    features: ['tax-preparation', 'audit-support', 'year-round-service', 'e-filing'],
+    avgJobValue: 500,
+    urgencyLevel: 'high',
+    leadFormFields: ['name', 'phone', 'email', 'service_type', 'business_or_personal'],
+
+    services: [
+      {
+        id: 'tax-prep',
+        name: { es: 'Preparación de Planillas', en: 'Tax Preparation' },
+        priceRange: '$150-$800'
+      },
+      {
+        id: 'bookkeeping',
+        name: { es: 'Contabilidad', en: 'Bookkeeping' },
+        priceRange: '$200-$1000/mo'
+      },
+      {
+        id: 'audit-support',
+        name: { es: 'Apoyo de Auditoría', en: 'Audit Support' },
+        priceRange: '$500-$3000'
+      }
+    ]
+  },
+
+  'general-contractor': {
+    id: 'general-contractor',
+    name: 'General Contractor',
+    namePlural: 'General Contractors',
+    category: 'trade',
+    keywords: ['contractor', 'construction', 'remodeling', 'renovation', 'building', 'permit'],
+    description: 'General contracting and construction services',
+
+    headline: {
+      es: "Contratista General - Proyectos Completos",
+      en: "General Contractor - Complete Projects"
+    },
+    subheadline: {
+      es: "Desde permisos hasta entrega, sin complicaciones",
+      en: "From permits to delivery, hassle-free"
+    },
+    painPoints: {
+      es: [
+        "Proyectos sin terminar o retrasados",
+        "Sobrecostos inesperados",
+        "Contratistas sin licencia"
+      ],
+      en: [
+        "Unfinished or delayed projects",
+        "Unexpected cost overruns",
+        "Unlicensed contractors"
+      ]
+    },
+
+    icon: 'HardHat',
+    primaryColor: '#ea580c',
+    features: ['licensed-insured', 'project-management', 'warranty', 'financing-options'],
+    avgJobValue: 25000,
+    urgencyLevel: 'low',
+    leadFormFields: ['name', 'phone', 'email', 'project_type', 'budget', 'timeline'],
+
+    services: [
+      {
+        id: 'remodeling',
+        name: { es: 'Remodelación', en: 'Remodeling' },
+        priceRange: '$10000-$100000'
+      },
+      {
+        id: 'addition',
+        name: { es: 'Expansión', en: 'Addition' },
+        priceRange: '$50000-$300000'
+      },
+      {
+        id: 'new-construction',
+        name: { es: 'Construcción Nueva', en: 'New Construction' },
+        priceRange: '$200000+'
+      }
+    ]
+  },
+
+  'cleaning-service': {
+    id: 'cleaning-service',
+    name: 'Cleaning Service',
+    namePlural: 'Cleaning Services',
+    category: 'trade',
+    keywords: ['cleaning', 'maid', 'housekeeping', 'janitorial', 'deep clean', 'move-out'],
+    description: 'Professional residential and commercial cleaning',
+
+    headline: {
+      es: "Servicio de Limpieza - Casa Impecable",
+      en: "Cleaning Service - Spotless Home"
+    },
+    subheadline: {
+      es: "Limpieza profunda sin perder tiempo buscando",
+      en: "Deep cleaning without wasting time searching"
+    },
+    painPoints: {
+      es: [
+        "Personal de limpieza no llega",
+        "Servicio irregular por confusión de dirección",
+        "Falta de confianza en nuevos servicios"
+      ],
+      en: [
+        "Cleaning crew doesn't arrive",
+        "Irregular service from address confusion",
+        "Lack of trust in new services"
+      ]
+    },
+
+    icon: 'Sparkles',
+    primaryColor: '#06b6d4',
+    features: ['background-checked', 'eco-friendly-products', 'flexible-schedule', 'satisfaction-guarantee'],
+    avgJobValue: 150,
+    urgencyLevel: 'low',
+    leadFormFields: ['name', 'phone', 'property_type', 'cleaning_type', 'frequency'],
+
+    services: [
+      {
+        id: 'regular-cleaning',
+        name: { es: 'Limpieza Regular', en: 'Regular Cleaning' },
+        priceRange: '$100-$200/visit'
+      },
+      {
+        id: 'deep-cleaning',
+        name: { es: 'Limpieza Profunda', en: 'Deep Cleaning' },
+        priceRange: '$200-$500'
+      },
+      {
+        id: 'move-out',
+        name: { es: 'Limpieza de Mudanza', en: 'Move-Out Cleaning' },
+        priceRange: '$300-$800'
+      }
+    ]
+  },
+
+  'personal-trainer': {
+    id: 'personal-trainer',
+    name: 'Personal Trainer',
+    namePlural: 'Personal Trainers',
+    category: 'healthcare',
+    keywords: ['fitness', 'trainer', 'workout', 'gym', 'weight loss', 'muscle gain'],
+    description: 'Personal fitness training and nutrition coaching',
+
+    headline: {
+      es: "Entrenador Personal - Transforma Tu Cuerpo",
+      en: "Personal Trainer - Transform Your Body"
+    },
+    subheadline: {
+      es: "Entrenamiento personalizado en tu hogar o gimnasio",
+      en: "Personalized training at your home or gym"
+    },
+    painPoints: {
+      es: [
+        "Gimnasios caros sin resultados",
+        "Falta de motivación para entrenar",
+        "Rutinas genéricas que no funcionan"
+      ],
+      en: [
+        "Expensive gyms without results",
+        "Lack of motivation to train",
+        "Generic routines that don't work"
+      ]
+    },
+
+    icon: 'Dumbbell',
+    primaryColor: '#16a34a',
+    features: ['customized-plans', 'nutrition-coaching', 'progress-tracking', 'flexible-location'],
+    avgJobValue: 400,
+    urgencyLevel: 'low',
+    leadFormFields: ['name', 'phone', 'email', 'fitness_goals', 'experience_level', 'availability'],
+
+    services: [
+      {
+        id: 'personal-training',
+        name: { es: 'Entrenamiento Personal', en: 'Personal Training' },
+        priceRange: '$50-$150/session'
+      },
+      {
+        id: 'nutrition-plan',
+        name: { es: 'Plan Nutricional', en: 'Nutrition Plan' },
+        priceRange: '$100-$300/month'
+      },
+      {
+        id: 'online-coaching',
+        name: { es: 'Coaching Online', en: 'Online Coaching' },
+        priceRange: '$200-$500/month'
+      }
+    ]
   }
 };
 

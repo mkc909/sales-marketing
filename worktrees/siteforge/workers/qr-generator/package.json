@@ -1,0 +1,32 @@
+{
+  "name": "estateflow-qr-generator",
+  "version": "1.0.0",
+  "description": "EstateFlow QR Code Generator Service - Generate and cache QR codes",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:staging": "wrangler deploy --env staging",
+    "deploy:production": "wrangler deploy --env production",
+    "tail": "wrangler tail",
+    "tail:production": "wrangler tail --env production",
+    "r2:create": "wrangler r2 bucket create estateflow-qr-codes",
+    "kv:create": "wrangler kv:namespace create QR_CACHE",
+    "kv:create:preview": "wrangler kv:namespace create QR_CACHE --preview",
+    "test": "echo \"No tests configured yet\"",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "cloudflare",
+    "workers",
+    "qr-code",
+    "estateflow"
+  ],
+  "author": "EstateFlow",
+  "license": "MIT",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241127.0",
+    "typescript": "^5.7.2",
+    "wrangler": "^3.96.0"
+  }
+}

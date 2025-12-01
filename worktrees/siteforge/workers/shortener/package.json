@@ -1,0 +1,33 @@
+{
+  "name": "estateflow-shortener",
+  "version": "1.0.0",
+  "description": "EstateFlow URL Shortener Service - est.at short links",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:staging": "wrangler deploy --env staging",
+    "deploy:production": "wrangler deploy --env production",
+    "tail": "wrangler tail",
+    "tail:production": "wrangler tail --env production",
+    "kv:create": "wrangler kv:namespace create LINKS && wrangler kv:namespace create ANALYTICS",
+    "kv:create:preview": "wrangler kv:namespace create LINKS --preview && wrangler kv:namespace create ANALYTICS --preview",
+    "d1:create": "wrangler d1 create estateflow-analytics",
+    "d1:migrate": "wrangler d1 execute estateflow-analytics --file=./schema.sql",
+    "test": "echo \"No tests configured yet\"",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "cloudflare",
+    "workers",
+    "url-shortener",
+    "estateflow"
+  ],
+  "author": "EstateFlow",
+  "license": "MIT",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241127.0",
+    "typescript": "^5.7.2",
+    "wrangler": "^3.96.0"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "name": "estateflow-agent-ingestion",
+  "version": "1.0.0",
+  "description": "EstateFlow Agent Ingestion Service - Process and ingest professional data",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:staging": "wrangler deploy --env staging",
+    "deploy:production": "wrangler deploy --env production",
+    "tail": "wrangler tail",
+    "tail:production": "wrangler tail --env production",
+    "d1:create": "wrangler d1 create estateflow-db",
+    "d1:migrate": "wrangler d1 execute estateflow-db --file=../../migrations/003_multi_industry_platform_safe.sql",
+    "kv:create": "wrangler kv:namespace create INGESTION_STATUS",
+    "kv:create:preview": "wrangler kv:namespace create INGESTION_STATUS --preview",
+    "r2:create": "wrangler r2 bucket create estateflow-imports",
+    "setup": "npm run d1:create && npm run kv:create && npm run r2:create",
+    "test": "echo \"No tests configured yet\"",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "cloudflare",
+    "workers",
+    "data-ingestion",
+    "estateflow"
+  ],
+  "author": "EstateFlow",
+  "license": "MIT",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241127.0",
+    "typescript": "^5.7.2",
+    "wrangler": "^3.96.0"
+  }
+}

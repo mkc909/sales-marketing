@@ -8,7 +8,7 @@ import { Form, useActionData, useLoaderData, useNavigation } from "@remix-run/re
 import { useState, useEffect, useRef } from "react";
 import { MapPin, Navigation, Share2, Camera, Check, Copy, QrCode } from "lucide-react";
 import { createPin, getPopularPins, type Pin } from "~/models/pin.server";
-import { getBrandConfig } from "~/lib/branding";
+import { getBrandConfig } from "~/config/theme";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const brand = getBrandConfig(context.tenant?.brand || 'siteforge');

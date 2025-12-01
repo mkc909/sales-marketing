@@ -1,0 +1,30 @@
+{
+  "name": "scraper-api-worker",
+  "version": "1.0.0",
+  "description": "Edge worker for live professional data scraping with caching and rate limiting",
+  "main": "index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:staging": "wrangler deploy --env staging",
+    "deploy:production": "wrangler deploy --env production",
+    "tail": "wrangler tail",
+    "kv:namespace:create": "wrangler kv:namespace create \"SCRAPER_KV\"",
+    "kv:namespace:create:preview": "wrangler kv:namespace create \"SCRAPER_KV\" --preview"
+  },
+  "dependencies": {
+    "itty-router": "^4.0.25"
+  },
+  "devDependencies": {
+    "wrangler": "^3.22.1"
+  },
+  "keywords": [
+    "cloudflare",
+    "workers",
+    "scraping",
+    "edge-computing",
+    "api"
+  ],
+  "author": "EstateFlow Platform",
+  "license": "MIT"
+}

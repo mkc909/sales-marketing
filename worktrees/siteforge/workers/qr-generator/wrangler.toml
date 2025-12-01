@@ -1,0 +1,42 @@
+name = "estateflow-qr-generator"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+# R2 Bucket for storing generated QR codes
+[[r2_buckets]]
+binding = "QR_STORAGE"
+bucket_name = "estateflow-qr-codes"
+preview_bucket_name = "estateflow-qr-codes-preview"
+
+# KV Namespace for caching
+[[kv_namespaces]]
+binding = "QR_CACHE"
+id = "qr_cache"
+preview_id = "qr_cache_preview"
+
+# Service binding to shortener service
+[[services]]
+binding = "SHORTENER"
+service = "estateflow-shortener"
+environment = "production"
+
+# Environment variables
+[vars]
+MAX_QR_SIZE = 2000
+DEFAULT_QR_SIZE = 512
+ERROR_CORRECTION_LEVEL = "M"
+
+# Production settings
+[env.production]
+vars = { ENVIRONMENT = "production" }
+
+# Staging settings
+[env.staging]
+vars = { ENVIRONMENT = "staging" }
+
+# Development settings
+[env.development]
+vars = {
+  ENVIRONMENT = "development",
+  MAX_QR_SIZE = 1000
+}

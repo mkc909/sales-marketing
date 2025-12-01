@@ -1,0 +1,33 @@
+name = "scraper-api"
+main = "index.js"
+compatibility_date = "2023-12-01"
+
+# KV namespace for caching
+[[kv_namespaces]]
+binding = "SCRAPER_KV"
+id = "b8b2341a7abf431aa67a9700ac39d56d"
+preview_id = "b8b2341a7abf431aa67a9700ac39d56d"
+
+# Environment variables
+[vars]
+BROWSER_AGENT_URL = "https://scraper-browser.magicmike.workers.dev"
+CACHE_TTL = "86400"
+RATE_LIMIT_WINDOW = "60"
+RATE_LIMIT_MAX_REQUESTS = "10"
+
+# Production environment
+[env.production]
+vars = { ENVIRONMENT = "production" }
+
+# Development environment
+[env.development]
+vars = { ENVIRONMENT = "development" }
+
+# Route configuration (uncomment and customize for your domain)
+# routes = [
+#   { pattern = "scraper.yourdomain.com/api/*", zone_name = "yourdomain.com" }
+# ]
+
+# Limits
+[limits]
+cpu_ms = 50000

@@ -4,17 +4,17 @@
  * Uses native Popover API and View Transitions for premium UX
  */
 
-import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
-import { json } from "@remix-run/cloudflare";
-import { Link, useLoaderData, Form } from "@remix-run/react";
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
+import { json, redirect } from "@remix-run/cloudflare";
+import { Link, useLoaderData, Form, useActionData } from "@remix-run/react";
 import {
   MapPin, Phone, Clock, Star, Shield, CheckCircle,
   ChevronRight, Users, TrendingUp, MessageCircle,
   Calendar, DollarSign, Award, Zap
 } from "lucide-react";
 
-import { getIndustryConfig, generateIndustryMetaTags } from "~/config/industries";
-import { getBrandConfig } from "~/lib/branding";
+import { getIndustryConfig, generateIndustryMetaTags } from "../config/industries";
+import { getBrandConfig } from "../config/theme";
 
 // City data (would come from DB in production)
 const cityData: Record<string, any> = {
@@ -70,13 +70,82 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   ];
 };
 
+export async function action({ request, params, context }: ActionFunctionArgs) {
+  const formData = await request.formData();
+  const action = formData.get('action');
+
+  if (action === 'quote' || action === 'contact') {
+    // Extract form data
+    const leadData = {
+      name: formData.get('name') as string,
+      phone: formData.get('phone') as string,
+      email: formData.get('email') as string || '',
+      message: formData.get('message') as string || '',
+      service: formData.get('service') as string || '',
+      businessId: formData.get('businessId') as string || '',
+      industry: formData.get('industry') as string || params.industry || '',
+      city: params.city || '',
+      emergency: formData.get('emergency') === 'on',
+      timestamp: new Date().toISOString(),
+      source: action === 'quote' ? 'instant_quote' : 'contact_form'
+    };
+
+    try {
+      // Store lead in D1 database
+      const db = context.env.DB;
+      await db.prepare(`
+        INSERT INTO leads (
+          name, phone, email, message, service, business_id,
+          industry, city, is_emergency, source, status, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'new', ?)
+      `).bind(
+        leadData.name,
+        leadData.phone,
+        leadData.email,
+        leadData.message,
+        leadData.service,
+        leadData.businessId,
+        leadData.industry,
+        leadData.city,
+        leadData.emergency ? 1 : 0,
+        leadData.source,
+        leadData.timestamp
+      ).run();
+
+      // Queue notification (SMS/Email will be sent via API route)
+      // Store in KV for async processing
+      await context.env.ANALYTICS_BUFFER.put(
+        `lead:${Date.now()}`,
+        JSON.stringify(leadData),
+        { expirationTtl: 3600 } // 1 hour expiration
+      );
+
+      // Return success response
+      return json({
+        success: true,
+        message: action === 'quote'
+          ? 'Quote request received! We\'ll contact you shortly.'
+          : 'Message sent! The business will contact you soon.'
+      });
+    } catch (error) {
+      console.error('Lead submission error:', error);
+      return json({
+        success: false,
+        error: 'Failed to submit request. Please try again.'
+      }, { status: 500 });
+    }
+  }
+
+  return json({ success: false, error: 'Invalid action' }, { status: 400 });
+}
+
 export async function loader({ params, context }: LoaderFunctionArgs) {
   const { industry: industrySlug, city: citySlug } = params;
 
   // Get configurations
   const industry = getIndustryConfig(industrySlug || '');
   const city = cityData[citySlug || ''];
-  const brand = getBrandConfig(context.tenant?.brand || 'siteforge');
+  const brand = getBrandConfig('siteforge'); // Default to EstateFlow for now
 
   if (!industry || !city) {
     throw new Response('Not Found', { status: 404 });
@@ -130,6 +199,7 @@ function generateMockProfiles(industry: any, city: any, count: number) {
 
 export default function IndustryLandingPage() {
   const { industry, city, brand, ghostProfiles, stats } = useLoaderData<typeof loader>();
+  const actionData = useActionData<typeof action>();
   const isEnlacePR = brand.id === 'enlacepr';
 
   // Dynamic icon component based on industry
@@ -144,7 +214,8 @@ export default function IndustryLandingPage() {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{__html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         /* Native Popover Styles */
         [popover] {
           margin: auto;
@@ -192,7 +263,7 @@ export default function IndustryLandingPage() {
           <div className="text-center">
             {/* Industry Icon */}
             <div className={`inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-6`}
-                 style={{ backgroundColor: industry.primaryColor }}>
+              style={{ backgroundColor: industry.primaryColor }}>
               <IconComponent className="w-10 h-10 text-white" />
             </div>
 
@@ -326,11 +397,10 @@ export default function IndustryLandingPage() {
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
-                        className={`w-4 h-4 ${
-                          i < Math.floor(profile.rating)
-                            ? 'fill-yellow-400 text-yellow-400'
-                            : 'text-gray-300'
-                        }`}
+                        className={`w-4 h-4 ${i < Math.floor(profile.rating)
+                          ? 'fill-yellow-400 text-yellow-400'
+                          : 'text-gray-300'
+                          }`}
                       />
                     ))}
                   </div>

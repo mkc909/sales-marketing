@@ -1,0 +1,56 @@
+name = "estateflow-agent-ingestion"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+# D1 Database for storing professional data
+[[d1_databases]]
+binding = "DB"
+database_name = "estateflow-db"
+database_id = "YOUR_DATABASE_ID_HERE"
+
+# KV Namespace for tracking ingestion status
+[[kv_namespaces]]
+binding = "INGESTION_STATUS"
+id = "ingestion_status"
+preview_id = "ingestion_status_preview"
+
+# R2 Bucket for storing raw import files
+[[r2_buckets]]
+binding = "IMPORT_FILES"
+bucket_name = "estateflow-imports"
+preview_bucket_name = "estateflow-imports-preview"
+
+# Optional service binding for notifications
+# [[services]]
+# binding = "NOTIFICATION_SERVICE"
+# service = "estateflow-notifications"
+
+# Secrets (set with: wrangler secret put API_SECRET)
+# API_SECRET = "your-secret-key-here"
+
+# Environment variables
+[vars]
+MAX_BATCH_SIZE = 1000
+RATE_LIMIT_ENABLED = true
+
+# Production settings
+[env.production]
+vars = {
+  ENVIRONMENT = "production",
+  MAX_BATCH_SIZE = 5000
+}
+
+# Staging settings
+[env.staging]
+vars = {
+  ENVIRONMENT = "staging",
+  MAX_BATCH_SIZE = 1000
+}
+
+# Development settings
+[env.development]
+vars = {
+  ENVIRONMENT = "development",
+  MAX_BATCH_SIZE = 100,
+  RATE_LIMIT_ENABLED = false
+}

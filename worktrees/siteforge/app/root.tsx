@@ -8,10 +8,10 @@ import {
   useLoaderData,
 } from "@remix-run/react";
 
-import tailwindStyles from "~/styles/tailwind.css?url";
+import styles from "./styles/tailwind.css?url";
 
 export const links: LinksFunction = () => [
-  { rel: "stylesheet", href: tailwindStyles },
+  { rel: "stylesheet", href: styles },
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
     rel: "preconnect",

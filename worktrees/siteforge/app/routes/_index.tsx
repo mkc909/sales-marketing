@@ -12,8 +12,6 @@ import {
   Search, Shield, Users, TrendingUp,
   Briefcase, Scale, Calculator, Hammer
 } from "lucide-react";
-import { getBrandConfig } from "~/config/theme";
-import { Analytics } from "~/lib/posthog";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   const brand = data?.brand;
@@ -47,24 +45,14 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 };
 
 export async function loader({ context, request }: LoaderFunctionArgs) {
-  // 1. Identify Brand
-  const brandId = context.tenant?.brand || 'siteforge'; // Default to EstateFlow
-  const brand = getBrandConfig(brandId);
+  // 1. Identify Brand - Default to EstateFlow for now
+  const brandId = 'siteforge'; // Default to EstateFlow
+  const brand = { id: 'siteforge', name: 'EstateFlow', domain: 'estateflow.pages.dev', messaging: { hero: 'Find Perfect Professionals', subhero: 'Connect with top-rated experts' } };
 
-  // 2. Initialize Analytics & Feature Flags
-  const analytics = new Analytics(context);
-  // Mock user ID for now, in prod this comes from session
-  const userId = 'anon_' + Date.now();
-  const flags = await analytics.getFeatureFlags(userId);
+  // 2. Default flags
+  let flags = { urgency_banner: true };
 
-  // 3. Track Page View
-  context.waitUntil(analytics.trackNavigation({
-    id: 'home_page',
-    pinType: 'landing',
-    category: 'system'
-  }, userId, 'browser'));
-
-  // 4. Get Stats (Mock for now, replace with DB call)
+  // 3. Get Stats (Mock for now, replace with DB call)
   const stats = {
     totalPins: 15234,
     totalDeliveries: 45678,
