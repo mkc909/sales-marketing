@@ -44,13 +44,11 @@ curl -X POST https://scraper-api.magicmike.workers.dev/search \
 - Health check endpoint working: ✅
 
 **Known Issue - Error 1042:**
-- Worker fails with "error code: 1042" when trying to call Browser Rendering API
-- This is a Cloudflare service issue that may require:
-  1. Ensuring Browser Rendering API is properly activated for the account
-  2. Checking account limits or billing for the Browser Rendering service
-  3. Verifying proper permissions between workers
+- Worker fails with "error code: 1042" when trying to fetch scraper-browser worker
+- **Root Cause**: Workers in same zone cannot fetch each other via HTTP
+- **Solution**: Use Service Bindings instead of HTTP fetch (see TICKET-023)
 
-**Status:** Core infrastructure deployed but Browser Rendering integration blocked by Cloudflare service issue.
+**Status:** Core infrastructure deployed. Worker-to-worker communication needs Service Binding configuration.
 
 ## Expected Response
 Should return FL professional data (real or mock) with source field.
