@@ -92,7 +92,7 @@ export default function Index() {
               )}
 
               <h1 className="text-5xl lg:text-7xl font-bold tracking-tight text-slate-900 mb-6">
-                Find the <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Perfect Professional</span><br />
+                Find <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Perfect Professional</span><br />
                 for Your Needs
               </h1>
 
@@ -155,6 +155,24 @@ export default function Index() {
                   <h3 className="font-semibold text-slate-900">{industry.name}</h3>
                 </Link>
               ))}
+            </div>
+
+            {/* ProGeoData Search Banner */}
+            <div className="mt-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 text-white text-center">
+              <div className="max-w-3xl mx-auto">
+                <h2 className="text-2xl font-bold mb-4">Professional License Database Search</h2>
+                <p className="text-blue-100 mb-6">
+                  Search verified professional licenses across all 50 states. Real-time data from official licensing boards.
+                </p>
+                <Link
+                  to="/progeodata"
+                  className="inline-flex items-center gap-2 bg-white text-blue-600 px-6 py-3 rounded-xl font-semibold hover:bg-blue-50 transition-all transform hover:scale-105"
+                >
+                  <Search className="w-5 h-5" />
+                  Search ProGeoData
+                  <ChevronRight className="w-5 h-5" />
+                </Link>
+              </div>
             </div>
           </div>
         </section>
@@ -360,7 +378,7 @@ export default function Index() {
               <p className="text-gray-600">
                 {isPinExacto
                   ? 'Urbanización Villa Mar, Calle 7, Int 456, "al lado del colmado"'
-                  : 'Complex B, Building 7, "near the blue mailbox by the oak tree"'}
+                  : 'Complex B, Building 7, "near blue mailbox by oak tree"'}
               </p>
             </div>
           </div>
@@ -417,7 +435,7 @@ export default function Index() {
                 3
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {isPinExacto ? "Comparte el Link" : "Share the Link"}
+                {isPinExacto ? "Comparte el Link" : "Share Link"}
               </h3>
               <p className="text-gray-600">
                 {isPinExacto

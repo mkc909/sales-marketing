@@ -1,8 +1,8 @@
 import { PassThrough } from "node:stream";
 import { type EntryContext } from "@remix-run/cloudflare";
 import { RemixServer } from "@remix-run/react";
-import { isbot } from "isbot";
-import { renderToPipeableStream } from "react-dom/server";
+import isbot from "isbot";
+const ReactDOMServer = await import("react-dom/server");
 
 const ABORT_DELAY = 5_000;
 
@@ -14,17 +14,17 @@ export default function handleRequest(
 ) {
   return isbot(request.headers.get("user-agent"))
     ? handleBotRequest(
-        request,
-        responseStatusCode,
-        responseHeaders,
-        remixContext
-      )
+      request,
+      responseStatusCode,
+      responseHeaders,
+      remixContext
+    )
     : handleBrowserRequest(
-        request,
-        responseStatusCode,
-        responseHeaders,
-        remixContext
-      );
+      request,
+      responseStatusCode,
+      responseHeaders,
+      remixContext
+    );
 }
 
 function handleBotRequest(
@@ -35,40 +35,26 @@ function handleBotRequest(
 ) {
   return new Promise((resolve, reject) => {
     let shellRendered = false;
-    const { pipe, abort } = renderToPipeableStream(
-      <RemixServer
-        context={remixContext}
-        url={request.url}
-        abortDelay={ABORT_DELAY}
-      />,
-      {
-        onAllReady() {
-          shellRendered = true;
-          const body = new PassThrough();
-          responseHeaders.set("Content-Type", "text/html");
+    try {
+      const html = ReactDOMServer.renderToString(
+        <RemixServer
+          context={remixContext}
+          url={request.url}
+        />
+      );
 
-          resolve(
-            new Response(body, {
-              headers: responseHeaders,
-              status: responseStatusCode,
-            })
-          );
+      shellRendered = true;
+      responseHeaders.set("Content-Type", "text/html");
 
-          pipe(body);
-        },
-        onShellError(error: unknown) {
-          reject(error);
-        },
-        onError(error: unknown) {
-          responseStatusCode = 500;
-          if (shellRendered) {
-            console.error(error);
-          }
-        },
-      }
-    );
-
-    setTimeout(abort, ABORT_DELAY);
+      resolve(
+        new Response(html, {
+          headers: responseHeaders,
+          status: responseStatusCode,
+        })
+      );
+    } catch (error) {
+      reject(error);
+    }
   });
 }
 
@@ -80,39 +66,25 @@ function handleBrowserRequest(
 ) {
   return new Promise((resolve, reject) => {
     let shellRendered = false;
-    const { pipe, abort } = renderToPipeableStream(
-      <RemixServer
-        context={remixContext}
-        url={request.url}
-        abortDelay={ABORT_DELAY}
-      />,
-      {
-        onShellReady() {
-          shellRendered = true;
-          const body = new PassThrough();
-          responseHeaders.set("Content-Type", "text/html");
+    try {
+      const html = ReactDOMServer.renderToString(
+        <RemixServer
+          context={remixContext}
+          url={request.url}
+        />
+      );
 
-          resolve(
-            new Response(body, {
-              headers: responseHeaders,
-              status: responseStatusCode,
-            })
-          );
+      shellRendered = true;
+      responseHeaders.set("Content-Type", "text/html");
 
-          pipe(body);
-        },
-        onShellError(error: unknown) {
-          reject(error);
-        },
-        onError(error: unknown) {
-          responseStatusCode = 500;
-          if (shellRendered) {
-            console.error(error);
-          }
-        },
-      }
-    );
-
-    setTimeout(abort, ABORT_DELAY);
+      resolve(
+        new Response(html, {
+          headers: responseHeaders,
+          status: responseStatusCode,
+        })
+      );
+    } catch (error) {
+      reject(error);
+    }
   });
 }

@@ -88,7 +88,7 @@ export interface AgentFeatures {
 }
 
 export class FeatureFlagService {
-  constructor(private context: AppLoadContext) {}
+  constructor(private context: AppLoadContext) { }
 
   /**
    * Get features for an agent based on their tier and region
@@ -616,8 +616,86 @@ export class FeatureFlagService {
         seoWriting: false,
         multiVariant: false
       }
-    };
-  }
+
+      /**
+       * ProGeoData Feature Flags
+       */
+      export interface ProGeoDataFeatures {
+      api: {
+        salesEnabled: boolean;
+        comingSoon: boolean;
+        betaAccess: boolean;
+      };
+      search: {
+        bulkExport: boolean;
+        advancedFilters: boolean;
+        realTimeUpdates: boolean;
+      };
+      ui: {
+        showPricing: boolean;
+        showUpgradePrompt: boolean;
+        showUsageStats: boolean;
+      };
+    }
+
+    export class ProGeoDataFeatureFlags {
+      private static features: ProGeoDataFeatures = {
+        api: {
+          salesEnabled: false, // API sales disabled - Coming Soon
+          comingSoon: true,     // Show "Coming Soon" banner
+          betaAccess: false,    // Beta access not yet available
+        },
+        search: {
+          bulkExport: true,      // Bulk export enabled
+          advancedFilters: true,  // Advanced search filters enabled
+          realTimeUpdates: true,  // Real-time data updates enabled
+        },
+        ui: {
+          showPricing: true,      // Show pricing page
+          showUpgradePrompt: true, // Show upgrade prompts
+          showUsageStats: true,   // Show usage statistics
+        },
+      };
+
+      /**
+       * Check if a ProGeoData feature is enabled
+       */
+      static isEnabled(featurePath: string): boolean {
+        const parts = featurePath.split('.');
+        let current: any = ProGeoDataFeatureFlags.features;
+
+        for (const part of parts) {
+          if (current[part] === undefined) return false;
+          current = current[part];
+        }
+
+        return Boolean(current);
+      }
+
+      /**
+       * Get all ProGeoData features
+       */
+      static getAllFeatures(): ProGeoDataFeatures {
+        return ProGeoDataFeatureFlags.features;
+      }
+
+      /**
+       * Update feature flags (for admin use)
+       */
+      static updateFeature(featurePath: string, value: boolean): void {
+        const parts = featurePath.split('.');
+        let current: any = ProGeoDataFeatureFlags.features;
+
+        for (let i = 0; i < parts.length - 1; i++) {
+          if (current[parts[i]] === undefined) return;
+          current = current[parts[i]];
+        }
+
+        current[parts[parts.length - 1]] = value;
+      }
+    }
+  };
+}
 }
 
 /**

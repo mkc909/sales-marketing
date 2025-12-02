@@ -1,0 +1,76 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Cloudflare Wrangler
+.wrangler/
+wrangler-dist/
+.dev.vars
+
+# Build outputs
+build/
+dist/
+public/build/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+temp/
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# TypeScript
+*.tsbuildinfo
+
+# Remix
+.cache/
+build/
+public/build/
+app/styles/tailwind.css
+
+# Generated documentation
+docs/generated/
+
+# Local data files
+*.csv
+*.json
+!package.json
+!tsconfig.json
+!wrangler.toml
+!package-lock.json
+test-data-*.csv
+test-data-*.sql
+
+# Deployment artifacts
+deployment-logs/
+*.backup
+*.old

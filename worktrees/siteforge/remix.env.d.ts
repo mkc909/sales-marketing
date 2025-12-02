@@ -17,6 +17,16 @@ declare module "@remix-run/cloudflare" {
       ENVIRONMENT?: string;
       POSTHOG_API_KEY?: string;
       POSTHOG_HOST?: string;
+
+      // Stripe environment variables
+      STRIPE_SECRET_KEY?: string;
+      STRIPE_WEBHOOK_SECRET?: string;
+      STRIPE_PUBLISHABLE_KEY?: string;
+
+      // Google OAuth
+      GOOGLE_CLIENT_ID?: string;
+      GOOGLE_CLIENT_SECRET?: string;
+      BASE_URL?: string;
     };
     waitUntil: (promise: Promise<any>) => void;
     passThroughOnException: () => void;
@@ -25,4 +35,4 @@ declare module "@remix-run/cloudflare" {
   }
 }
 
-export {};
+export { };
