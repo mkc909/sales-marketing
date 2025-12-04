@@ -66,9 +66,7 @@ async function writeDataPoint(
                 event.properties?.count || 1
             ],
             indexes: [
-                hashString(event.event_name),
-                event.user_id ? hashString(event.user_id) : 0,
-                event.session_id ? hashString(event.session_id) : 0
+                hashString(event.event_name) // Analytics Engine only supports 1 index
             ]
         };
 
