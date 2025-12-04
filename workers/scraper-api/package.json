@@ -16,7 +16,7 @@
     "itty-router": "^4.0.25"
   },
   "devDependencies": {
-    "wrangler": "^3.22.1"
+    "wrangler": "^4.52.1"
   },
   "keywords": [
     "cloudflare",
