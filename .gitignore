@@ -116,3 +116,4 @@ worktrees/backup/
 # Cloudflare Wrangler - ignore temporary and state files
 .wrangler/state/
 .wrangler/tmp/
+workers/scraper-browser/node_modules/
