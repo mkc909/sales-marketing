@@ -226,11 +226,11 @@ async function storeProfessionals(
           pro.license_number,
           pro.name,
           null, // Address not provided by license DBs
-          pro.city || null,
+          pro.city ?? null,
           pro.state,
           message.zip_code,
-          pro.phone || null,
-          pro.email || null,
+          pro.phone ?? null,
+          pro.email ?? null,
           message.profession,
           JSON.stringify(pro),
           new Date().toISOString()

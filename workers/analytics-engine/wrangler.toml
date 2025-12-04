@@ -1,0 +1,19 @@
+name = "analytics-engine" 
+
+main = "src/index.ts"
+compatibility_date = "2024-12-04"
+compatibility_flags = ["nodejs_compat"]
+account_id = "af57e902fd9dcaad7484a7195ac0f536"
+
+# Analytics Engine binding for analytic_events dataset
+[[analytics_engine_datasets]]
+binding = "ANALYTICS_ENGINE"
+dataset = "analytic_events"
+
+# Environment variables
+[vars]
+WORKER_VERSION = "1.0.0"
+
+# Development environment
+[env.development]
+vars = { DEBUG = "true" }

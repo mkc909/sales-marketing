@@ -1,0 +1,29 @@
+{
+  "name": "analytics-engine",
+  "version": "1.0.0",
+  "description": "Analytics Engine Worker with Binding for analytic_events dataset",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail",
+    "test": "vitest",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "cloudflare",
+    "workers",
+    "analytics",
+    "analytics-engine",
+    "events"
+  ],
+  "author": "EstateFlow",
+  "license": "MIT",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241127.0",
+    "typescript": "^5.3.3",
+    "vitest": "^1.0.4",
+    "wrangler": "^3.86.1"
+  },
+  "dependencies": {}
+}

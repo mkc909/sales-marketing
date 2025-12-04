@@ -212,7 +212,8 @@ async function upsertQueueState(
 async function seedQueue(
   env: Env,
   mode: 'test' | 'production',
-  states?: string[]
+  states?: string[],
+  force: boolean = false
 ): Promise<{ queued: number; skipped: number; errors: number }> {
   const zipCodes = getZipCodes(mode);
   const targetStates = states || Object.keys(zipCodes);
@@ -238,14 +239,16 @@ async function seedQueue(
 
     for (const zip of stateZips) {
       try {
-        // Check if already queued
-        const alreadyQueued = await isAlreadyQueued(env.DB, zip, state, sourceType);
-        if (alreadyQueued) {
-          skipped++;
-          if (env.DEBUG) {
-            console.log(`Skipped ${state}-${zip}: already queued or recently processed`);
+        // Check if already queued (unless force is true)
+        if (!force) {
+          const alreadyQueued = await isAlreadyQueued(env.DB, zip, state, sourceType);
+          if (alreadyQueued) {
+            skipped++;
+            if (env.DEBUG) {
+              console.log(`Skipped ${state}-${zip}: already queued or recently processed`);
+            }
+            continue;
           }
-          continue;
         }
 
         // Create queue message
@@ -307,13 +310,14 @@ export default {
     if (url.pathname === '/seed' && request.method === 'POST') {
       try {
         // Parse request body for options
-        const body = await request.json().catch(() => ({}));
+        const body: any = await request.json().catch(() => ({}));
         const mode = (body.mode as 'test' | 'production') || 'test';
         const states = body.states as string[] | undefined;
+        const force = body.force as boolean | undefined;
 
-        console.log(`Manual seed triggered - Mode: ${mode}, States: ${states?.join(', ') || 'all'}`);
+        console.log(`Manual seed triggered - Mode: ${mode}, States: ${states?.join(', ') || 'all'}, Force: ${force || false}`);
 
-        const result = await seedQueue(env, mode, states);
+        const result = await seedQueue(env, mode, states, force);
 
         return new Response(
           JSON.stringify({

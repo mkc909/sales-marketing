@@ -51,6 +51,7 @@ interface SearchRequest {
   profession: string;
   zip: string;
   limit?: number;
+  bypass_cache?: boolean;
 }
 
 interface Professional {
@@ -1039,176 +1040,176 @@ async function scrapeFLDBPR(page: Page, params: SearchRequest): Promise<Professi
     console.error('FL DBPR scraping error:', error);
     return [];  // Return empty array on error, don't use mock data
   }
+}
 
+// CA DRE scraping function
+async function scrapeCADRE(page: Page, params: SearchRequest): Promise<Professional[]> {
+  const { zip, profession, limit = 10 } = params;
 
-  // CA DRE scraping function
-  async function scrapeCADRE(page: Page, params: SearchRequest): Promise<Professional[]> {
-    const { zip, profession, limit = 10 } = params;
+  console.log(`Scraping CA DRE for ${profession} in ZIP ${zip}`);
 
-    console.log(`Scraping CA DRE for ${profession} in ZIP ${zip}`);
+  try {
+    // Navigate to CA DRE license search page
+    await page.goto('https://www2.dre.ca.gov/PublicASP/license_query.asp', {
+      waitUntil: 'networkidle2',
+      timeout: 30000
+    });
 
+    // Wait for page to fully load
+    await page.waitForTimeout(3000);
+
+    // Debug: Check what's actually on the page
+    const pageContent = await page.content();
+    console.log('CA Page title:', await page.title());
+    console.log('CA Page URL:', page.url());
+    console.log('CA Page contains search forms:', pageContent.includes('<form'));
+
+    // Map profession to CA DRE search terms
+    const professionMap: Record<string, string> = {
+      'real_estate': 'Real Estate Salesperson',
+      'real_estate_agent': 'Real Estate Salesperson',
+      'real_estate_broker': 'Real Estate Broker',
+      'insurance': 'Insurance Agent',
+      'contractor': 'General Contractor',
+      'attorney': 'Attorney',
+      'dentist': 'Dentist'
+    };
+
+    const searchTerm = professionMap[profession] || 'Real Estate Salesperson';
+
+    // Enhanced form interaction with multiple strategies
+    let formSubmitted = false;
+
+    // Strategy 1: Try to find and fill the actual search form
     try {
-      // Navigate to CA DRE license search page
-      await page.goto('https://www2.dre.ca.gov/PublicASP/license_query.asp', {
-        waitUntil: 'networkidle2',
-        timeout: 30000
-      });
+      console.log('CA Strategy 1: Attempting form interaction');
 
-      // Wait for page to fully load
-      await page.waitForTimeout(3000);
+      // Wait for form elements to be available
+      await page.waitForSelector('form', { timeout: 5000 });
 
-      // Debug: Check what's actually on the page
-      const pageContent = await page.content();
-      console.log('CA Page title:', await page.title());
-      console.log('CA Page URL:', page.url());
-      console.log('CA Page contains search forms:', pageContent.includes('<form'));
+      // Look for name input field
+      const nameSelectors = [
+        'input[name="name"]',
+        'input[name="lastName"]',
+        'input[name="firstName"]',
+        'input[placeholder*="name"]',
+        'input[id*="name"]'
+      ];
 
-      // Map profession to CA DRE search terms
-      const professionMap: Record<string, string> = {
-        'real_estate': 'Real Estate Salesperson',
-        'real_estate_agent': 'Real Estate Salesperson',
-        'real_estate_broker': 'Real Estate Broker',
-        'insurance': 'Insurance Agent',
-        'contractor': 'General Contractor',
-        'attorney': 'Attorney',
-        'dentist': 'Dentist'
-      };
-
-      const searchTerm = professionMap[profession] || 'Real Estate Salesperson';
-
-      // Enhanced form interaction with multiple strategies
-      let formSubmitted = false;
-
-      // Strategy 1: Try to find and fill the actual search form
-      try {
-        console.log('CA Strategy 1: Attempting form interaction');
-
-        // Wait for form elements to be available
-        await page.waitForSelector('form', { timeout: 5000 });
-
-        // Look for name input field
-        const nameSelectors = [
-          'input[name="name"]',
-          'input[name="lastName"]',
-          'input[name="firstName"]',
-          'input[placeholder*="name"]',
-          'input[id*="name"]'
-        ];
-
-        let nameInput = null;
-        for (const selector of nameSelectors) {
-          try {
-            nameInput = await page.$(selector);
-            if (nameInput) {
-              console.log(`Found name input with selector: ${selector}`);
-              break;
-            }
-          } catch (e) {
-            continue;
+      let nameInput = null;
+      for (const selector of nameSelectors) {
+        try {
+          nameInput = await page.$(selector);
+          if (nameInput) {
+            console.log(`Found name input with selector: ${selector}`);
+            break;
           }
+        } catch (e) {
+          continue;
         }
+      }
 
-        // Look for city/ZIP input
-        const locationSelectors = [
-          'input[name="city"]',
-          'input[name="zip"]',
-          'input[name="location"]',
-          'input[placeholder*="city"]',
-          'input[placeholder*="zip"]'
-        ];
+      // Look for city/ZIP input
+      const locationSelectors = [
+        'input[name="city"]',
+        'input[name="zip"]',
+        'input[name="location"]',
+        'input[placeholder*="city"]',
+        'input[placeholder*="zip"]'
+      ];
 
-        let locationInput = null;
-        for (const selector of locationSelectors) {
-          try {
-            locationInput = await page.$(selector);
-            if (locationInput) {
-              console.log(`Found location input with selector: ${selector}`);
-              break;
-            }
-          } catch (e) {
-            continue;
-          }
-        }
-
-        // Look for license type dropdown
-        const licenseSelectors = [
-          'select[name="licenseType"]',
-          'select[name="license_type"]',
-          'select[name="profession"]',
-          'select[id*="license"]'
-        ];
-
-        let licenseSelect = null;
-        for (const selector of licenseSelectors) {
-          try {
-            licenseSelect = await page.$(selector);
-            if (licenseSelect) {
-              console.log(`Found license select with selector: ${selector}`);
-              break;
-            }
-          } catch (e) {
-            continue;
-          }
-        }
-
-        // Fill form if we found elements
-        if (nameInput || locationInput || licenseSelect) {
-          if (licenseSelect) {
-            await licenseSelect.select(searchTerm);
-            console.log(`Selected license type: ${searchTerm}`);
-          }
-
+      let locationInput = null;
+      for (const selector of locationSelectors) {
+        try {
+          locationInput = await page.$(selector);
           if (locationInput) {
-            await locationInput.type(zip);
-            console.log(`Entered location: ${zip}`);
+            console.log(`Found location input with selector: ${selector}`);
+            break;
           }
+        } catch (e) {
+          continue;
+        }
+      }
 
-          // Look for and click search button with enhanced approach
-          const submitSelectors = [
-            'input[type="submit"]',
-            'button[type="submit"]',
-            'button[value*="Search"]',
-            'input[value*="Search"]',
-            'button[id*="search"]',
-            'input[id*="search"]',
-            'button[class*="search"]',
-            'input[class*="search"]'
-          ];
+      // Look for license type dropdown
+      const licenseSelectors = [
+        'select[name="licenseType"]',
+        'select[name="license_type"]',
+        'select[name="profession"]',
+        'select[id*="license"]'
+      ];
 
-          for (const selector of submitSelectors) {
+      let licenseSelect = null;
+      for (const selector of licenseSelectors) {
+        try {
+          licenseSelect = await page.$(selector);
+          if (licenseSelect) {
+            console.log(`Found license select with selector: ${selector}`);
+            break;
+          }
+        } catch (e) {
+          continue;
+        }
+      }
+
+      // Fill form if we found elements
+      if (nameInput || locationInput || licenseSelect) {
+        if (licenseSelect) {
+          await licenseSelect.select(searchTerm);
+          console.log(`Selected license type: ${searchTerm}`);
+        }
+
+        if (locationInput) {
+          await locationInput.type(zip);
+          console.log(`Entered location: ${zip}`);
+        }
+
+        // Look for and click search button with enhanced approach
+        const submitSelectors = [
+          'input[type="submit"]',
+          'button[type="submit"]',
+          'button[value*="Search"]',
+          'input[value*="Search"]',
+          'button[id*="search"]',
+          'input[id*="search"]',
+          'button[class*="search"]',
+          'input[class*="search"]'
+        ];
+
+        for (const selector of submitSelectors) {
+          try {
+            const submitButton = await page.$(selector);
+            if (submitButton) {
+              // Try with navigation wait
+              await Promise.all([
+                page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 10000 }),
+                submitButton.click()
+              ]);
+              console.log(`Clicked submit button with selector: ${selector}`);
+              formSubmitted = true;
+              break;
+            }
+          } catch (e) {
+            // If navigation fails, try just clicking
             try {
               const submitButton = await page.$(selector);
               if (submitButton) {
-                // Try with navigation wait
-                await Promise.all([
-                  page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 10000 }),
-                  submitButton.click()
-                ]);
-                console.log(`Clicked submit button with selector: ${selector}`);
+                await submitButton.click();
+                console.log(`Clicked submit button (no navigation) with selector: ${selector}`);
                 formSubmitted = true;
                 break;
               }
-            } catch (e) {
-              // If navigation fails, try just clicking
-              try {
-                const submitButton = await page.$(selector);
-                if (submitButton) {
-                  await submitButton.click();
-                  console.log(`Clicked submit button (no navigation) with selector: ${selector}`);
-                  formSubmitted = true;
-                  break;
-                }
-              } catch (e2) {
-                continue;
-              }
+            } catch (e2) {
+              continue;
             }
           }
+        }
 
-          // Fallback: Try to submit form directly
-          if (!formSubmitted) {
-            try {
-              await page.evaluate(() => {
-                const formScript = `
+        // Fallback: Try to submit form directly
+        if (!formSubmitted) {
+          try {
+            await page.evaluate(() => {
+              const formScript = `
                 const forms = document.querySelectorAll('form');
                 if (forms.length > 0) {
                   const form = forms[0];
@@ -1217,544 +1218,550 @@ async function scrapeFLDBPR(page: Page, params: SearchRequest): Promise<Professi
                   }
                 }
               `;
-                eval(formScript);
-              });
-              console.log('Submitted form directly via JavaScript');
-              formSubmitted = true;
-            } catch (e) {
-              console.log('Direct form submission failed');
-            }
+              eval(formScript);
+            });
+            console.log('Submitted form directly via JavaScript');
+            formSubmitted = true;
+          } catch (e) {
+            console.log('Direct form submission failed');
           }
         }
+      }
+
+    } catch (e) {
+      console.error('CA Strategy 1 failed:', e);
+    }
+
+    // Strategy 2: Try direct navigation to results
+    if (!formSubmitted) {
+      try {
+        console.log('CA Strategy 2: Attempting direct navigation');
+
+        // Try to construct a direct search URL
+        const searchUrl = `https://www2.dre.ca.gov/PublicASP/license_query.asp?searchType=license&licenseType=${encodeURIComponent(searchTerm)}&city=${encodeURIComponent(zip)}`;
+        await page.goto(searchUrl, {
+          waitUntil: 'networkidle2',
+          timeout: 30000
+        });
+
+        await page.waitForTimeout(3000);
+        formSubmitted = true;
 
       } catch (e) {
-        console.error('CA Strategy 1 failed:', e);
+        console.error('CA Strategy 2 failed:', e);
       }
+    }
 
-      // Strategy 2: Try direct navigation to results
-      if (!formSubmitted) {
+    // Wait for results to load if form was submitted
+    if (formSubmitted) {
+      await page.waitForTimeout(5000);
+    }
+
+    // Extract results with enhanced parsing
+    let results: Professional[] = [];
+
+    try {
+      const htmlContent = await page.content();
+      console.log('CA Page HTML length:', htmlContent.length);
+
+      // Multiple extraction strategies for professional data
+      const extractionStrategies = [
+        // Strategy 1: Look for result tables with better filtering
+        async () => {
+          const tables = await page.$$('table');
+          for (const table of tables) {
+            const rows = await table.$$('tr');
+            if (rows.length > 1) { // At least header + 1 data row
+              console.log(`Found table with ${rows.length} rows`);
+
+              for (let i = 1; i < Math.min(rows.length, limit + 1); i++) {
+                const cells = await rows[i].$$('td');
+                if (cells.length >= 3) {
+                  const cellTexts = await Promise.all(
+                    cells.map(cell => cell.evaluate(el => el.textContent?.trim() || ''))
+                  );
+
+                  // Enhanced filtering for real professional data
+                  const name = cellTexts.find((text: string) =>
+                    text.match(/^[A-Z][a-z]+ [A-Z][a-z]+(?: [A-Z][a-z]+)?$/) &&
+                    text.length > 5 &&
+                    !text.toLowerCase().includes('search') &&
+                    !text.toLowerCase().includes('result') &&
+                    !text.toLowerCase().includes('toggle') &&
+                    !text.toLowerCase().includes('login') &&
+                    !text.toLowerCase().includes('content') &&
+                    !text.toLowerCase().includes('commission')
+                  ) || '';
+
+                  const license = cellTexts.find((text: string) =>
+                    text.match(/^[A-Z0-9]{6,8}$/) &&
+                    text.length >= 6
+                  ) || '';
+
+                  const status = cellTexts.find((text: string) =>
+                    text.match(/Active|Inactive|Expired|Suspended/i)
+                  ) || 'Unknown';
+
+                  const company = cellTexts.find((text: string) =>
+                    text.length > 10 &&
+                    !text.match(/^[A-Z0-9]{6,8}$/) &&
+                    !text.match(/Active|Inactive|Expired/i) &&
+                    !text.toLowerCase().includes('search') &&
+                    !text.toLowerCase().includes('toggle')
+                  ) || '';
+
+                  // Only add if we have valid name and license
+                  if (name && license) {
+                    results.push({
+                      name,
+                      license_number: license,
+                      license_status: status,
+                      company: company || undefined,
+                      city: undefined,
+                      state: 'CA',
+                      phone: null,
+                      email: null,
+                      specializations: []
+                    });
+                  }
+                }
+              }
+
+              if (results.length > 0) return true;
+            }
+          }
+          return false;
+        },
+
+        // Strategy 2: Look for result cards or divs
+        async () => {
+          const cardSelectors = [
+            '.result-card',
+            '.search-result',
+            '.license-holder',
+            '.professional',
+            '.record',
+            '[class*="result"]',
+            '[class*="license"]'
+          ];
+
+          for (const selector of cardSelectors) {
+            const cards = await page.$$(selector);
+            if (cards.length > 0) {
+              console.log(`Found ${cards.length} cards with selector: ${selector}`);
+
+              for (let i = 0; i < Math.min(cards.length, limit); i++) {
+                const card = cards[i];
+                const text = await card.evaluate(el => el.textContent || '');
+
+                if (text && text.trim() && text.length > 20) {
+                  // Parse professional data from card text
+                  const lines = text.split('\n').map((line: string) => line.trim()).filter((line: string) => line);
+                  const name = lines.find((line: string) => line.match(/^[A-Z][a-z]+ [A-Z][a-z]+/)) || '';
+                  const license = lines.find((line: string) => line.match(/^[A-Z0-9]{6,8}$/)) || '';
+                  const status = lines.find((line: string) => line.match(/Active|Inactive|Expired/i)) || 'Unknown';
+
+                  if (name && license && !name.toLowerCase().includes('search') && !name.toLowerCase().includes('result')) {
+                    results.push({
+                      name,
+                      license_number: license,
+                      license_status: status,
+                      company: undefined,
+                      city: undefined,
+                      state: 'CA',
+                      phone: null,
+                      email: null,
+                      specializations: []
+                    });
+                  }
+                }
+              }
+
+              if (results.length > 0) return true;
+            }
+          }
+          return false;
+        },
+
+        // Strategy 3: Text-based extraction with patterns
+        async () => {
+          const pageText = await page.content();
+          const textContent = pageText.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+
+          // Look for professional name patterns
+          const namePattern = /[A-Z][a-z]+ [A-Z][a-z]+(?: [A-Z][a-z]+)?/g;
+          const licensePattern = /[A-Z0-9]{6,8}/g;
+          const statusPattern = /Active|Inactive|Expired/gi;
+
+          const names = textContent.match(namePattern) || [];
+          const licenses = textContent.match(licensePattern) || [];
+          const statuses = textContent.match(statusPattern) || [];
+
+          // Filter out navigation text
+          const filteredNames = names.filter((name: string) =>
+            !name.toLowerCase().includes('search') &&
+            !name.toLowerCase().includes('result') &&
+            !name.toLowerCase().includes('license') &&
+            !name.toLowerCase().includes('holder') &&
+            name.length > 5
+          );
+
+          for (let i = 0; i < Math.min(filteredNames.length, limit); i++) {
+            results.push({
+              name: filteredNames[i],
+              license_number: licenses[i] || `CA${String(1000000 + i).padStart(7, '0')}`,
+              license_status: statuses[i] || 'Active',
+              company: undefined,
+              city: undefined,
+              state: 'CA',
+              phone: null,
+              email: null,
+              specializations: []
+            });
+          }
+
+          return results.length > 0;
+        }
+      ];
+
+      // Try each extraction strategy
+      for (let i = 0; i < extractionStrategies.length; i++) {
         try {
-          console.log('CA Strategy 2: Attempting direct navigation');
-
-          // Try to construct a direct search URL
-          const searchUrl = `https://www2.dre.ca.gov/PublicASP/license_query.asp?searchType=license&licenseType=${encodeURIComponent(searchTerm)}&city=${encodeURIComponent(zip)}`;
-          await page.goto(searchUrl, {
-            waitUntil: 'networkidle2',
-            timeout: 30000
-          });
-
-          await page.waitForTimeout(3000);
-          formSubmitted = true;
-
+          console.log(`CA Extraction Strategy ${i + 1}`);
+          const success = await extractionStrategies[i]();
+          if (success && results.length > 0) {
+            console.log(`CA Extraction Strategy ${i + 1} succeeded with ${results.length} results`);
+            break;
+          }
         } catch (e) {
-          console.error('CA Strategy 2 failed:', e);
+          console.error(`CA Extraction Strategy ${i + 1} failed:`, e);
         }
       }
-
-      // Wait for results to load if form was submitted
-      if (formSubmitted) {
-        await page.waitForTimeout(5000);
-      }
-
-      // Extract results with enhanced parsing
-      let results: Professional[] = [];
-
-      try {
-        const htmlContent = await page.content();
-        console.log('CA Page HTML length:', htmlContent.length);
-
-        // Multiple extraction strategies for professional data
-        const extractionStrategies = [
-          // Strategy 1: Look for result tables with better filtering
-          async () => {
-            const tables = await page.$$('table');
-            for (const table of tables) {
-              const rows = await table.$$('tr');
-              if (rows.length > 1) { // At least header + 1 data row
-                console.log(`Found table with ${rows.length} rows`);
-
-                for (let i = 1; i < Math.min(rows.length, limit + 1); i++) {
-                  const cells = await rows[i].$$('td');
-                  if (cells.length >= 3) {
-                    const cellTexts = await Promise.all(
-                      cells.map(cell => cell.evaluate(el => el.textContent?.trim() || ''))
-                    );
-
-                    // Enhanced filtering for real professional data
-                    const name = cellTexts.find((text: string) =>
-                      text.match(/^[A-Z][a-z]+ [A-Z][a-z]+(?: [A-Z][a-z]+)?$/) &&
-                      text.length > 5 &&
-                      !text.toLowerCase().includes('search') &&
-                      !text.toLowerCase().includes('result') &&
-                      !text.toLowerCase().includes('toggle') &&
-                      !text.toLowerCase().includes('login') &&
-                      !text.toLowerCase().includes('content') &&
-                      !text.toLowerCase().includes('commission')
-                    ) || '';
-
-                    const license = cellTexts.find((text: string) =>
-                      text.match(/^[A-Z0-9]{6,8}$/) &&
-                      text.length >= 6
-                    ) || '';
-
-                    const status = cellTexts.find((text: string) =>
-                      text.match(/Active|Inactive|Expired|Suspended/i)
-                    ) || 'Unknown';
-
-                    const company = cellTexts.find((text: string) =>
-                      text.length > 10 &&
-                      !text.match(/^[A-Z0-9]{6,8}$/) &&
-                      !text.match(/Active|Inactive|Expired/i) &&
-                      !text.toLowerCase().includes('search') &&
-                      !text.toLowerCase().includes('toggle')
-                    ) || '';
-
-                    // Only add if we have valid name and license
-                    if (name && license) {
-                      results.push({
-                        name,
-                        license_number: license,
-                        license_status: status,
-                        company: company || undefined,
-                        city: undefined,
-                        state: 'CA',
-                        phone: null,
-                        email: null,
-                        specializations: []
-                      });
-                    }
-                  }
-                }
-
-                if (results.length > 0) return true;
-              }
-            }
-            return false;
-          },
-
-          // Strategy 2: Look for result cards or divs
-          async () => {
-            const cardSelectors = [
-              '.result-card',
-              '.search-result',
-              '.license-holder',
-              '.professional',
-              '.record',
-              '[class*="result"]',
-              '[class*="license"]'
-            ];
-
-            for (const selector of cardSelectors) {
-              const cards = await page.$$(selector);
-              if (cards.length > 0) {
-                console.log(`Found ${cards.length} cards with selector: ${selector}`);
-
-                for (let i = 0; i < Math.min(cards.length, limit); i++) {
-                  const card = cards[i];
-                  const text = await card.evaluate(el => el.textContent || '');
-
-                  if (text && text.trim() && text.length > 20) {
-                    // Parse professional data from card text
-                    const lines = text.split('\n').map((line: string) => line.trim()).filter((line: string) => line);
-                    const name = lines.find((line: string) => line.match(/^[A-Z][a-z]+ [A-Z][a-z]+/)) || '';
-                    const license = lines.find((line: string) => line.match(/^[A-Z0-9]{6,8}$/)) || '';
-                    const status = lines.find((line: string) => line.match(/Active|Inactive|Expired/i)) || 'Unknown';
-
-                    if (name && license && !name.toLowerCase().includes('search') && !name.toLowerCase().includes('result')) {
-                      results.push({
-                        name,
-                        license_number: license,
-                        license_status: status,
-                        company: undefined,
-                        city: undefined,
-                        state: 'CA',
-                        phone: null,
-                        email: null,
-                        specializations: []
-                      });
-                    }
-                  }
-                }
-
-                if (results.length > 0) return true;
-              }
-            }
-            return false;
-          },
-
-          // Strategy 3: Text-based extraction with patterns
-          async () => {
-            const pageText = await page.content();
-            const textContent = pageText.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-
-            // Look for professional name patterns
-            const namePattern = /[A-Z][a-z]+ [A-Z][a-z]+(?: [A-Z][a-z]+)?/g;
-            const licensePattern = /[A-Z0-9]{6,8}/g;
-            const statusPattern = /Active|Inactive|Expired/gi;
-
-            const names = textContent.match(namePattern) || [];
-            const licenses = textContent.match(licensePattern) || [];
-            const statuses = textContent.match(statusPattern) || [];
-
-            // Filter out navigation text
-            const filteredNames = names.filter((name: string) =>
-              !name.toLowerCase().includes('search') &&
-              !name.toLowerCase().includes('result') &&
-              !name.toLowerCase().includes('license') &&
-              !name.toLowerCase().includes('holder') &&
-              name.length > 5
-            );
-
-            for (let i = 0; i < Math.min(filteredNames.length, limit); i++) {
-              results.push({
-                name: filteredNames[i],
-                license_number: licenses[i] || `CA${String(1000000 + i).padStart(7, '0')}`,
-                license_status: statuses[i] || 'Active',
-                company: undefined,
-                city: undefined,
-                state: 'CA',
-                phone: null,
-                email: null,
-                specializations: []
-              });
-            }
-
-            return results.length > 0;
-          }
-        ];
-
-        // Try each extraction strategy
-        for (let i = 0; i < extractionStrategies.length; i++) {
-          try {
-            console.log(`CA Extraction Strategy ${i + 1}`);
-            const success = await extractionStrategies[i]();
-            if (success && results.length > 0) {
-              console.log(`CA Extraction Strategy ${i + 1} succeeded with ${results.length} results`);
-              break;
-            }
-          } catch (e) {
-            console.error(`CA Extraction Strategy ${i + 1} failed:`, e);
-          }
-        }
-
-      } catch (error) {
-        console.error('CA HTML parsing error:', error);
-      }
-
-      console.log(`Found ${results.length} CA professionals`);
-      return results;  // Return empty array if no results, don't use mock data
 
     } catch (error) {
-      console.error('CA DRE scraping error:', error);
-      return [];  // Return empty array on error, don't use mock data
+      console.error('CA HTML parsing error:', error);
     }
+
+    console.log(`Found ${results.length} CA professionals`);
+    return results;  // Return empty array if no results, don't use mock data
+
+  } catch (error) {
+    console.error('CA DRE scraping error:', error);
+    return [];  // Return empty array on error, don't use mock data
   }
+}
 
-  // Mock data functions removed - we only return real data or empty arrays
+// Mock data functions removed - we only return real data or empty arrays
 
-  export default {
-    async fetch(request: Request, env: Env): Promise<Response> {
-      const startTime = Date.now();
-      const url = new URL(request.url);
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const startTime = Date.now();
+    const url = new URL(request.url);
 
-      // CORS headers
-      const corsHeaders = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
-      };
+    // CORS headers
+    const corsHeaders = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    };
 
-      // Handle preflight
-      if (request.method === 'OPTIONS') {
-        return new Response(null, { headers: corsHeaders });
-      }
+    // Handle preflight
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { headers: corsHeaders });
+    }
 
-      // Health check endpoint
-      if (request.method === 'GET' && url.pathname === '/health') {
-        try {
-          const cacheTest = await env.CACHE.get('health-check-test');
+    // Health check endpoint
+    if (request.method === 'GET' && url.pathname === '/health') {
+      try {
+        const cacheTest = await env.CACHE.get('health-check-test');
 
-          const health: HealthCheck = {
-            status: 'healthy',
-            timestamp: new Date().toISOString(),
-            version: '1.1.0-fixed',
-            uptime: Date.now() - startTime,
-            checks: {
-              browser: true,
-              cache: cacheTest !== null || true,
-              api: true
-            }
-          };
+        const health: HealthCheck = {
+          status: 'healthy',
+          timestamp: new Date().toISOString(),
+          version: '1.1.0-fixed',
+          uptime: Date.now() - startTime,
+          checks: {
+            browser: true,
+            cache: cacheTest !== null || true,
+            api: true
+          }
+        };
 
-          logEvent({
-            timestamp: new Date().toISOString(),
-            event: 'health_check',
-            status_code: 200,
-            duration_ms: Date.now() - startTime
-          });
-
-          return new Response(JSON.stringify(health), {
-            status: 200,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          });
-        } catch (error) {
-          logEvent({
-            timestamp: new Date().toISOString(),
-            event: 'health_check_failed',
-            error: error instanceof Error ? error.message : 'Unknown error',
-            status_code: 500,
-            duration_ms: Date.now() - startTime
-          });
-
-          return new Response(JSON.stringify({
-            status: 'unhealthy',
-            error: error instanceof Error ? error.message : 'Unknown error'
-          }), {
-            status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          });
-        }
-      }
-
-      // Only accept POST for scraping
-      if (request.method !== 'POST') {
         logEvent({
           timestamp: new Date().toISOString(),
-          event: 'method_not_allowed',
-          status_code: 405,
+          event: 'health_check',
+          status_code: 200,
           duration_ms: Date.now() - startTime
         });
 
-        return new Response('Method not allowed', {
-          status: 405,
-          headers: corsHeaders
+        return new Response(JSON.stringify(health), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
-      }
-
-      try {
-        let searchParams: SearchRequest;
-        try {
-          searchParams = await request.json();
-        } catch (parseError) {
-          console.error('JSON parse error:', parseError);
-          return new Response(JSON.stringify({
-            error: 'Invalid JSON in request body',
-            message: parseError instanceof Error ? parseError.message : 'Unknown error'
-          }), {
-            status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          });
-        }
-
-        // Validate required parameters
-        if (!searchParams.state || !searchParams.profession || !searchParams.zip) {
-          return new Response(JSON.stringify({
-            error: 'Missing required parameters: state, profession, zip'
-          }), {
-            status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          });
-        }
-
-        // Check cache first - but skip cache if it contains bad navigation data
-        const cacheKey = `${searchParams.state}:${searchParams.profession}:${searchParams.zip}`;
-
-        const cached = await env.CACHE.get(cacheKey, 'json');
-        if (cached) {
-          const cachedData = cached as any;
-
-          // Check if cached data contains navigation text instead of professional data
-          const isBadCache = cachedData.results && cachedData.results.length > 0 &&
-            (cachedData.results[0].name.includes('ONLINE SERVICES') ||
-              cachedData.results[0].name.includes('Apply for a License') ||
-              cachedData.results[0].name.includes('Verify a License') ||
-              cachedData.results[0].name.includes('\t') ||
-              cachedData.results[0].name.includes('\n'));
-
-          if (!isBadCache) {
-            const duration = Date.now() - startTime;
-
-            logEvent({
-              timestamp: new Date().toISOString(),
-              event: 'scrape_complete',
-              state: searchParams.state,
-              profession: searchParams.profession,
-              zip: searchParams.zip,
-              duration_ms: duration,
-              source: 'cache',
-              result_count: cachedData.total || 0,
-              cache_hit: true,
-              status_code: 200
-            });
-
-            return new Response(JSON.stringify({
-              ...cached,
-              source: 'cache',
-              cached: true
-            }), {
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-            });
-          } else {
-            console.log('Skipping bad cache data that contains navigation text');
-            // Delete bad cache entry
-            await env.CACHE.delete(cacheKey);
-          }
-        }
-
-        // Only support FL, TX, and CA states - fail gracefully for others
-        if (searchParams.state !== 'FL' && searchParams.state !== 'TX' && searchParams.state !== 'CA') {
-          return new Response(JSON.stringify({
-            success: false,
-            error: `State ${searchParams.state} not implemented`,
-            results: [],
-            source: 'error',
-            state: searchParams.state,
-            profession: searchParams.profession,
-            zip: searchParams.zip,
-            total: 0,
-            scraped_at: new Date().toISOString()
-          }), {
-            status: 404,  // Not Found - state not implemented
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          });
-        }
-
-        // Launch browser
-        console.log('Launching browser...');
-        const browserStartTime = Date.now();
-        const browser = await puppeteer.launch(env.BROWSER);
-
-        try {
-          const page = await browser.newPage();
-
-          // Set viewport
-          await page.setViewport({ width: 1920, height: 1080 });
-
-          // Add stealth settings
-          await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-
-          // Scrape data based on state
-          let results: Professional[];
-          if (searchParams.state === 'TX') {
-            results = await scrapeTXTREC(page, searchParams);
-          } else if (searchParams.state === 'CA') {
-            results = await scrapeCADRE(page, searchParams);
-          } else {
-            results = await scrapeFLDBPR(page, searchParams);
-          }
-
-          // Build response
-          const response: ResponseData = {
-            results,
-            source: results.length > 0 ? 'live' : 'no_data',
-            state: searchParams.state,
-            profession: searchParams.profession,
-            zip: searchParams.zip,
-            total: results.length,
-            scraped_at: new Date().toISOString()
-          };
-
-          // Add warning if no results found
-          if (results.length === 0) {
-            response.error = {
-              code: 'NO_RESULTS',
-              message: 'No professionals found for the specified criteria',
-              severity: 'info'
-            };
-          }
-
-          // Cache for 24 hours (only cache when we have results)
-          if (results.length > 0) {
-            await env.CACHE.put(cacheKey, JSON.stringify(response), {
-              expirationTtl: 86400  // 24 hours
-            });
-            console.log(`Cached ${results.length} results for ${cacheKey}`);
-          }
-
-          // Rate limit delay
-          const delay = parseInt(env.RATE_LIMIT_DELAY || '1000');
-          if (delay > 0) {
-            await new Promise(resolve => setTimeout(resolve, delay));
-          }
-
-          // Calculate browser usage metrics
-          const browserDuration = (Date.now() - browserStartTime) / 1000; // in seconds
-          const browserCost = calculateBrowserCost(browserDuration);
-          const totalDuration = Date.now() - startTime;
-
-          // Log comprehensive metrics
-          logEvent({
-            timestamp: new Date().toISOString(),
-            event: 'scrape_complete',
-            state: searchParams.state,
-            profession: searchParams.profession,
-            zip: searchParams.zip,
-            duration_ms: totalDuration,
-            source: response.source,
-            result_count: results.length,
-            cache_hit: false,
-            browser_duration_seconds: browserDuration,
-            estimated_cost: browserCost,
-            status_code: results.length > 0 ? 200 : 204
-          });
-
-          // Log browser usage separately for cost tracking
-          logEvent({
-            timestamp: new Date().toISOString(),
-            event: 'browser_usage',
-            browser_duration_seconds: browserDuration,
-            estimated_cost: browserCost
-          });
-
-          // Return appropriate HTTP status
-          const statusCode = results.length > 0 ? 200 : 204; // 204 No Content if no results
-
-          return new Response(JSON.stringify(response), {
-            status: statusCode,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          });
-
-        } finally {
-          await browser.close();
-        }
-
       } catch (error) {
-        const duration = Date.now() - startTime;
-
-        // Try to extract search params for logging, even if parsing failed
-        let state = 'unknown';
-        let profession = 'unknown';
-        let zip = 'unknown';
-
-        // We can't read body again since it was already consumed
-        // Use default values for logging in error cases
-        console.error('Request parsing failed, using default values for logging');
-
         logEvent({
           timestamp: new Date().toISOString(),
-          event: 'scrape_failed',
-          state: state,
-          profession: profession,
-          zip: zip,
-          duration_ms: duration,
+          event: 'health_check_failed',
           error: error instanceof Error ? error.message : 'Unknown error',
-          status_code: 500
+          status_code: 500,
+          duration_ms: Date.now() - startTime
         });
 
-        console.error('Browser worker error:', error);
-
         return new Response(JSON.stringify({
-          success: false,
-          error: 'Scraping failed',
-          message: error instanceof Error ? error.message : 'Unknown error',
-          results: [],
-          source: 'error',
-          total: 0,
-          scraped_at: new Date().toISOString()
+          status: 'unhealthy',
+          error: error instanceof Error ? error.message : 'Unknown error'
         }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
     }
-  };
+
+    // Only accept POST for scraping
+    if (request.method !== 'POST') {
+      logEvent({
+        timestamp: new Date().toISOString(),
+        event: 'method_not_allowed',
+        status_code: 405,
+        duration_ms: Date.now() - startTime
+      });
+
+      return new Response('Method not allowed', {
+        status: 405,
+        headers: corsHeaders
+      });
+    }
+
+    try {
+      let searchParams: SearchRequest;
+      try {
+        searchParams = await request.json();
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        return new Response(JSON.stringify({
+          error: 'Invalid JSON in request body',
+          message: parseError instanceof Error ? parseError.message : 'Unknown error'
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // Validate required parameters
+      if (!searchParams.state || !searchParams.profession || !searchParams.zip) {
+        return new Response(JSON.stringify({
+          error: 'Missing required parameters: state, profession, zip'
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // Check cache first - but skip cache if it contains bad navigation data or bypass requested
+      const cacheKey = `${searchParams.state}:${searchParams.profession}:${searchParams.zip}`;
+
+      // Skip cache if bypass parameter is present
+      if (searchParams.bypass_cache) {
+        console.log('Cache bypass requested, skipping cache check');
+      } else {
+        var cached = await env.CACHE.get(cacheKey, 'json');
+      }
+      if (cached && !searchParams.bypass_cache) {
+        const cachedData = cached as any;
+
+        // Check if cached data contains navigation text instead of professional data
+        const isBadCache = cachedData.results && cachedData.results.length > 0 &&
+          (cachedData.results[0].name.includes('ONLINE SERVICES') ||
+            cachedData.results[0].name.includes('Apply for a License') ||
+            cachedData.results[0].name.includes('Verify a License') ||
+            cachedData.results[0].name.includes('\t') ||
+            cachedData.results[0].name.includes('\n') ||
+            cachedData.results[0].name.includes('Server Error'));
+
+        if (!isBadCache) {
+          const duration = Date.now() - startTime;
+
+          logEvent({
+            timestamp: new Date().toISOString(),
+            event: 'scrape_complete',
+            state: searchParams.state,
+            profession: searchParams.profession,
+            zip: searchParams.zip,
+            duration_ms: duration,
+            source: 'cache',
+            result_count: cachedData.total || 0,
+            cache_hit: true,
+            status_code: 200
+          });
+
+          return new Response(JSON.stringify({
+            ...cached,
+            source: 'cache',
+            cached: true
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        } else {
+          console.log('Skipping bad cache data that contains navigation text');
+          // Delete bad cache entry
+          await env.CACHE.delete(cacheKey);
+        }
+      }
+
+      // Only support FL, TX, and CA states - fail gracefully for others
+      if (searchParams.state !== 'FL' && searchParams.state !== 'TX' && searchParams.state !== 'CA') {
+        return new Response(JSON.stringify({
+          success: false,
+          error: `State ${searchParams.state} not implemented`,
+          results: [],
+          source: 'error',
+          state: searchParams.state,
+          profession: searchParams.profession,
+          zip: searchParams.zip,
+          total: 0,
+          scraped_at: new Date().toISOString()
+        }), {
+          status: 404,  // Not Found - state not implemented
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // Launch browser
+      console.log('Launching browser...');
+      const browserStartTime = Date.now();
+      const browser = await puppeteer.launch(env.BROWSER);
+
+      try {
+        const page = await browser.newPage();
+
+        // Set viewport
+        await page.setViewport({ width: 1920, height: 1080 });
+
+        // Add stealth settings
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+
+        // Scrape data based on state
+        let results: Professional[];
+        if (searchParams.state === 'TX') {
+          results = await scrapeTXTREC(page, searchParams);
+        } else if (searchParams.state === 'CA') {
+          results = await scrapeCADRE(page, searchParams);
+        } else {
+          results = await scrapeFLDBPR(page, searchParams);
+        }
+
+        // Build response
+        const response: ResponseData = {
+          results,
+          source: results.length > 0 ? 'live' : 'no_data',
+          state: searchParams.state,
+          profession: searchParams.profession,
+          zip: searchParams.zip,
+          total: results.length,
+          scraped_at: new Date().toISOString()
+        };
+
+        // Add warning if no results found
+        if (results.length === 0) {
+          response.error = {
+            code: 'NO_RESULTS',
+            message: 'No professionals found for the specified criteria',
+            severity: 'info'
+          };
+        }
+
+        // Cache for 24 hours (only cache when we have results)
+        if (results.length > 0) {
+          await env.CACHE.put(cacheKey, JSON.stringify(response), {
+            expirationTtl: 86400  // 24 hours
+          });
+          console.log(`Cached ${results.length} results for ${cacheKey}`);
+        }
+
+        // Rate limit delay
+        const delay = parseInt(env.RATE_LIMIT_DELAY || '1000');
+        if (delay > 0) {
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+
+        // Calculate browser usage metrics
+        const browserDuration = (Date.now() - browserStartTime) / 1000; // in seconds
+        const browserCost = calculateBrowserCost(browserDuration);
+        const totalDuration = Date.now() - startTime;
+
+        // Log comprehensive metrics
+        logEvent({
+          timestamp: new Date().toISOString(),
+          event: 'scrape_complete',
+          state: searchParams.state,
+          profession: searchParams.profession,
+          zip: searchParams.zip,
+          duration_ms: totalDuration,
+          source: response.source,
+          result_count: results.length,
+          cache_hit: false,
+          browser_duration_seconds: browserDuration,
+          estimated_cost: browserCost,
+          status_code: results.length > 0 ? 200 : 204
+        });
+
+        // Log browser usage separately for cost tracking
+        logEvent({
+          timestamp: new Date().toISOString(),
+          event: 'browser_usage',
+          browser_duration_seconds: browserDuration,
+          estimated_cost: browserCost
+        });
+
+        // Return appropriate HTTP status
+        const statusCode = results.length > 0 ? 200 : 204; // 204 No Content if no results
+
+        return new Response(JSON.stringify(response), {
+          status: statusCode,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+
+      } finally {
+        await browser.close();
+      }
+
+    } catch (error) {
+      const duration = Date.now() - startTime;
+
+      // Try to extract search params for logging, even if parsing failed
+      let state = 'unknown';
+      let profession = 'unknown';
+      let zip = 'unknown';
+
+      // We can't read body again since it was already consumed
+      // Use default values for logging in error cases
+      console.error('Request parsing failed, using default values for logging');
+
+      logEvent({
+        timestamp: new Date().toISOString(),
+        event: 'scrape_failed',
+        state: state,
+        profession: profession,
+        zip: zip,
+        duration_ms: duration,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        status_code: 500
+      });
+
+      console.error('Browser worker error:', error);
+
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Scraping failed',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        results: [],
+        source: 'error',
+        total: 0,
+        scraped_at: new Date().toISOString()
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+  }
+};

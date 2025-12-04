@@ -117,3 +117,8 @@ worktrees/backup/
 .wrangler/state/
 .wrangler/tmp/
 workers/scraper-browser/node_modules/
+.wrangler
+*.broken*
+*.indented*
+*.typo
+fix-*.ps1
