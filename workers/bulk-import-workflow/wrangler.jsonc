@@ -1,0 +1,27 @@
+{
+    "name": "bulk-import-workflow",
+    "main": "src/index.ts",
+    "compatibility_date": "2025-03-07",
+    "compatibility_flags": [
+        "nodejs_compat"
+    ],
+    "account_id": "af57e902fd9dcaad7484a7195ac0f536",
+    "observability": {
+        "enabled": true,
+        "head_sampling_rate": 1
+    },
+    "workflows": [
+        {
+            "name": "bulk-import-workflow",
+            "binding": "IMPORT_WORKFLOW",
+            "class_name": "BulkImportWorkflow"
+        }
+    ],
+    "d1_databases": [
+        {
+            "binding": "DB",
+            "database_name": "progeodata-db",
+            "database_id": "4f712234-599b-4908-a4f3-20f11cba6564"
+        }
+    ]
+}

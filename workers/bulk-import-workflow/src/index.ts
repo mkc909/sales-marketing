@@ -1,6 +1,12 @@
 import { Hono } from 'hono'
 import { WorkflowEntrypoint, WorkflowEvent, WorkflowStep } from 'cloudflare:workers'
 
+// Type definitions for Cloudflare Workers
+type D1Database = any
+type WorkflowNamespace<T> = any
+type WorkflowEvent<T> = any
+type WorkflowStep = any
+
 interface Env {
   DB: D1Database
   IMPORT_WORKFLOW: WorkflowNamespace<BulkImportWorkflow>
@@ -142,7 +148,7 @@ export class BulkImportWorkflow extends WorkflowEntrypoint<Env, BulkImportParams
       })
   }
 
-  parseExcel(buffer: Buffer): any[] {
+  parseExcel(buffer: any): any[] {
     // Implement Excel parsing using xlsx library
     // npm install xlsx
     throw new Error('Excel parsing not implemented - convert to CSV first')
