@@ -166,9 +166,9 @@ export default function RefundPage() {
                                 If our service experiences extended downtime:
                             </p>
                             <ul className="list-disc pl-6 text-gray-700 space-y-2">
-                                <li>< 24 hours: No automatic refund, but you can request one</li>
+                                <li>{`<`} 24 hours: No automatic refund, but you can request one</li>
                                 <li>24-48 hours: Pro-rated refund for affected days</li>
-                                <li>> 48 hours: Full month refund upon request</li>
+                                <li>{`>`} 48 hours: Full month refund upon request</li>
                             </ul>
 
                             <h3 className="text-xl font-semibold text-gray-900 mb-3 mt-6">Data Accuracy Issues</h3>

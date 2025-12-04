@@ -8,11 +8,17 @@ import { Router } from 'itty-router';
 // Create router
 const router = Router();
 
+// Monitoring and Analytics
+function logEvent(entry) {
+    console.log(JSON.stringify(entry));
+}
+
+function calculateResponseTime(startTime) {
+    return Date.now() - startTime;
+}
+
 // Configuration
 const CONFIG = {
-    // Browser agent URL - Cloudflare Browser Rendering Worker
-    BROWSER_AGENT_URL: 'https://scraper-browser.magicmike.workers.dev',
-
     // Cache settings
     CACHE_TTL: 86400, // 24 hours in seconds
     CACHE_KEY_PREFIX: 'scraper:',
@@ -65,6 +71,15 @@ async function checkRateLimit(request, env) {
 
     // Check if rate limit exceeded
     if (requests.length >= CONFIG.RATE_LIMIT_MAX_REQUESTS) {
+        logEvent({
+            timestamp: new Date().toISOString(),
+            event: 'rate_limit_exceeded',
+            client_ip: clientIP,
+            current_count: requests.length,
+            max_requests: CONFIG.RATE_LIMIT_MAX_REQUESTS,
+            window_seconds: CONFIG.RATE_LIMIT_WINDOW
+        });
+
         return {
             allowed: false,
             retryAfter: CONFIG.RATE_LIMIT_WINDOW,
@@ -80,6 +95,15 @@ async function checkRateLimit(request, env) {
         expirationTtl: CONFIG.RATE_LIMIT_WINDOW + 60
     });
 
+    logEvent({
+        timestamp: new Date().toISOString(),
+        event: 'rate_limit_check',
+        client_ip: clientIP,
+        current_count: requests.length,
+        max_requests: CONFIG.RATE_LIMIT_MAX_REQUESTS,
+        remaining_requests: CONFIG.RATE_LIMIT_MAX_REQUESTS - requests.length
+    });
+
     return {
         allowed: true,
         remainingRequests: CONFIG.RATE_LIMIT_MAX_REQUESTS - requests.length
@@ -93,13 +117,32 @@ async function getCachedResults(cacheKey, env) {
     try {
         const cached = await env.SCRAPER_KV.get(cacheKey, 'json');
         if (cached) {
+            logEvent({
+                timestamp: new Date().toISOString(),
+                event: 'cache_hit',
+                cache_key: cacheKey,
+                cached_at: cached.timestamp
+            });
+
             return {
                 data: cached.data,
                 cached: true,
                 cachedAt: cached.timestamp
             };
+        } else {
+            logEvent({
+                timestamp: new Date().toISOString(),
+                event: 'cache_miss',
+                cache_key: cacheKey
+            });
         }
     } catch (e) {
+        logEvent({
+            timestamp: new Date().toISOString(),
+            event: 'cache_error',
+            cache_key: cacheKey,
+            error: e.message
+        });
         console.error('Cache get error:', e);
     }
     return null;
@@ -122,7 +165,7 @@ async function cacheResults(cacheKey, data, env) {
 }
 
 /**
- * Forward request to browser rendering worker
+ * Forward request to browser rendering worker using Service Binding
  */
 async function forwardToBrowserAgent(body, env) {
     // Transform request for browser rendering worker
@@ -133,14 +176,15 @@ async function forwardToBrowserAgent(body, env) {
         limit: body.limit || 10
     };
 
-    const response = await fetch(CONFIG.BROWSER_AGENT_URL, {
+    // Use Service Binding instead of HTTP fetch
+    const response = await env.BROWSER_WORKER.fetch(new Request('https://scraper-browser.internal', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'User-Agent': 'EstateFlow-Scraper-Worker/1.0'
         },
         body: JSON.stringify(browserRequest)
-    });
+    }));
 
     if (!response.ok) {
         throw new Error(`Browser rendering worker returned ${response.status}: ${response.statusText}`);
@@ -161,11 +205,24 @@ async function forwardToBrowserAgent(body, env) {
  * Handle CORS
  */
 function handleCORS(request) {
+    const origin = request.headers.get('Origin');
+    const allowedOrigins = [
+        'https://progeodata.com',
+        'https://www.progeodata.com',
+        'https://api.progeodata.com',
+        // Keep workers.dev for fallback during transition
+        'https://scraper-api.magicmike.workers.dev'
+    ];
+
+    // Allow specific origins or fallback to wildcard for development
+    const allowOrigin = allowedOrigins.includes(origin) ? origin : '*';
+
     const corsHeaders = {
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': allowOrigin,
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        'Access-Control-Max-Age': '86400'
+        'Access-Control-Max-Age': '86400',
+        'Vary': 'Origin' // Important for CORS caching
     };
 
     if (request.method === 'OPTIONS') {
@@ -179,6 +236,7 @@ function handleCORS(request) {
  * New search endpoint (simpler interface)
  */
 router.post('/search', async (request, env) => {
+    const startTime = Date.now();
     try {
         const corsHeaders = handleCORS(request);
         if (request.method === 'OPTIONS') {
@@ -190,6 +248,19 @@ router.post('/search', async (request, env) => {
 
         // Validate required fields
         if (!state || !profession || !zip) {
+            const duration = calculateResponseTime(startTime);
+
+            logEvent({
+                timestamp: new Date().toISOString(),
+                event: 'search_validation_failed',
+                state: state || 'missing',
+                profession: profession || 'missing',
+                zip: zip || 'missing',
+                duration_ms: duration,
+                error: 'Missing required parameters',
+                status_code: 400
+            });
+
             return new Response(JSON.stringify({
                 error: 'Missing required parameters: state, profession, zip'
             }), {
@@ -198,22 +269,46 @@ router.post('/search', async (request, env) => {
             });
         }
 
-        // Forward directly to browser rendering worker
-        const response = await fetch(CONFIG.BROWSER_AGENT_URL, {
+        // Forward directly to browser rendering worker using Service Binding
+        const response = await env.BROWSER_WORKER.fetch(new Request('https://scraper-browser.internal', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ state, profession, zip, limit })
-        });
+        }));
 
         const data = await response.json();
+        const duration = calculateResponseTime(startTime);
+
+        logEvent({
+            timestamp: new Date().toISOString(),
+            event: 'search_complete',
+            state: state,
+            profession: profession,
+            zip: zip,
+            duration_ms: duration,
+            result_count: data.results ? data.results.length : 0,
+            source: data.source || 'unknown',
+            cache_hit: data.cached || false,
+            status_code: response.status
+        });
 
         return new Response(JSON.stringify(data), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
 
     } catch (error) {
+        const duration = calculateResponseTime(startTime);
+
+        logEvent({
+            timestamp: new Date().toISOString(),
+            event: 'search_failed',
+            duration_ms: duration,
+            error: error.message,
+            status_code: 500
+        });
+
         console.error('Search error:', error);
         const corsHeaders = handleCORS(request);
         return new Response(JSON.stringify({
@@ -333,6 +428,7 @@ router.post('/api/scrape', async (request, env) => {
  * Health check endpoint
  */
 router.get('/health', async (request, env) => {
+    const startTime = Date.now();
     try {
         // Check KV connectivity
         const testKey = 'health_check';
@@ -343,14 +439,32 @@ router.get('/health', async (request, env) => {
             status: 'healthy',
             timestamp: new Date().toISOString(),
             kv: kvResult === 'ok' ? 'connected' : 'disconnected',
-            browserAgent: CONFIG.BROWSER_AGENT_URL,
-            version: '1.0.0'
+            browserAgent: 'Service Binding: scraper-browser',
+            version: '1.0.0',
+            response_time_ms: Date.now() - startTime
         };
+
+        logEvent({
+            timestamp: new Date().toISOString(),
+            event: 'health_check',
+            status: 'healthy',
+            kv_status: kvResult === 'ok' ? 'connected' : 'disconnected',
+            response_time_ms: Date.now() - startTime,
+            status_code: 200
+        });
 
         return new Response(JSON.stringify(health), {
             headers: { 'Content-Type': 'application/json' }
         });
     } catch (error) {
+        logEvent({
+            timestamp: new Date().toISOString(),
+            event: 'health_check_failed',
+            error: error.message,
+            response_time_ms: Date.now() - startTime,
+            status_code: 500
+        });
+
         return new Response(JSON.stringify({
             status: 'unhealthy',
             error: error.message

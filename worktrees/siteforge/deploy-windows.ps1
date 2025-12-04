@@ -1,5 +1,5 @@
 # EstateFlow Multi-Industry Platform - Windows PowerShell Deployment Script
-# This script deploys the platform to Cloudflare Pages with all required infrastructure
+# This script deploys the platform to Cloudflare Workers with all required infrastructure
 
 param(
     [switch]$SkipPrereqs = $false,
@@ -21,7 +21,7 @@ Write-Host @"
 ╔════════════════════════════════════════════════════════════════╗
 ║                                                                ║
 ║   EstateFlow Multi-Industry Platform Deployment               ║
-║   Target: Cloudflare Pages + Workers                          ║
+║   Target: Cloudflare Workers                                  ║
 ║                                                                ║
 ╚════════════════════════════════════════════════════════════════╝
 "@ -ForegroundColor Cyan
@@ -29,7 +29,7 @@ Write-Host @"
 # Configuration
 $PROJECT_NAME = "estateflow"
 $DB_NAME = "estateflow-db"
-$PAGES_PROJECT_NAME = "estateflow"
+$WORKERS_ACCOUNT_ID = "af57e902fd9dcaad7484a7195ac0f536"
 
 # Step 1: Prerequisites Check
 if (-not $SkipPrereqs) {
@@ -39,14 +39,16 @@ if (-not $SkipPrereqs) {
     Write-Info "Checking Node.js version (required: 18+)..."
     try {
         $nodeVersion = node --version
-        $nodeMajorVersion = [int]($nodeVersion -replace 'v(\d+)\..*','$1')
+        $nodeMajorVersion = [int]($nodeVersion -replace 'v(\d+)\..*', '$1')
         if ($nodeMajorVersion -ge 18) {
             Write-Success "Node.js $nodeVersion installed"
-        } else {
+        }
+        else {
             Write-Error-Custom "Node.js version $nodeVersion is too old. Please install Node.js 18+"
             exit 1
         }
-    } catch {
+    }
+    catch {
         Write-Error-Custom "Node.js not found. Please install Node.js 18+ from https://nodejs.org/"
         exit 1
     }
@@ -55,14 +57,16 @@ if (-not $SkipPrereqs) {
     Write-Info "Checking npm version (required: 8+)..."
     try {
         $npmVersion = npm --version
-        $npmMajorVersion = [int]($npmVersion -replace '(\d+)\..*','$1')
+        $npmMajorVersion = [int]($npmVersion -replace '(\d+)\..*', '$1')
         if ($npmMajorVersion -ge 8) {
             Write-Success "npm $npmVersion installed"
-        } else {
+        }
+        else {
             Write-Error-Custom "npm version $npmVersion is too old. Please update npm"
             exit 1
         }
-    } catch {
+    }
+    catch {
         Write-Error-Custom "npm not found"
         exit 1
     }
@@ -72,7 +76,8 @@ if (-not $SkipPrereqs) {
     try {
         $wranglerVersion = npx wrangler --version
         Write-Success "Wrangler installed: $wranglerVersion"
-    } catch {
+    }
+    catch {
         Write-Warning-Custom "Wrangler not found. Installing locally..."
         npm install wrangler
     }
@@ -89,7 +94,8 @@ if (-not $SkipAuth) {
     if ($LASTEXITCODE -eq 0) {
         Write-Success "Already authenticated with Cloudflare"
         Write-Host $authCheck
-    } else {
+    }
+    else {
         Write-Warning-Custom "Not authenticated. Opening browser for Cloudflare login..."
         npx wrangler login
         if ($LASTEXITCODE -ne 0) {
@@ -110,7 +116,8 @@ $existingDb = $dbList | Where-Object { $_.name -eq $DB_NAME }
 if ($existingDb) {
     Write-Success "Database '$DB_NAME' already exists (ID: $($existingDb.uuid))"
     $DB_ID = $existingDb.uuid
-} else {
+}
+else {
     Write-Warning-Custom "Database '$DB_NAME' not found. Creating..."
     if (-not $DryRun) {
         $createResult = npx wrangler d1 create $DB_NAME
@@ -121,7 +128,8 @@ if ($existingDb) {
         $DB_ID = ($createResult | Select-String -Pattern 'database_id = "([^"]+)"').Matches.Groups[1].Value
         Write-Info "Database ID: $DB_ID"
         Write-Warning-Custom "⚠️  IMPORTANT: Update wrangler.toml with this database_id: $DB_ID"
-    } else {
+    }
+    else {
         Write-Info "[DRY RUN] Would create database '$DB_NAME'"
     }
 }
@@ -142,14 +150,17 @@ foreach ($migration in $migrations) {
             try {
                 npx wrangler d1 execute $DB_NAME --file=$migration
                 Write-Success "Migration applied: $(Split-Path $migration -Leaf)"
-            } catch {
+            }
+            catch {
                 Write-Warning-Custom "Migration may have already been applied or failed. Continuing..."
                 Write-Host $_.Exception.Message
             }
-        } else {
+        }
+        else {
             Write-Info "[DRY RUN] Would run migration: $migration"
         }
-    } else {
+    }
+    else {
         Write-Warning-Custom "Migration file not found: $migration"
     }
 }
@@ -166,13 +177,15 @@ foreach ($namespace in $kvNamespaces) {
 
     if ($existingKv) {
         Write-Success "KV namespace '$namespace' already exists (ID: $($existingKv.id))"
-    } else {
+    }
+    else {
         Write-Warning-Custom "KV namespace '$namespace' not found. Creating..."
         if (-not $DryRun) {
             $kvResult = npx wrangler kv:namespace create $namespace
             Write-Success "KV namespace created: $namespace"
             Write-Host $kvResult
-        } else {
+        }
+        else {
             Write-Info "[DRY RUN] Would create KV namespace: $namespace"
         }
     }
@@ -196,12 +209,14 @@ foreach ($bucket in $r2Buckets) {
 
     if ($existingBucket) {
         Write-Success "R2 bucket '$bucket' already exists"
-    } else {
+    }
+    else {
         Write-Warning-Custom "R2 bucket '$bucket' not found. Creating..."
         if (-not $DryRun) {
             npx wrangler r2 bucket create $bucket
             Write-Success "R2 bucket created: $bucket"
-        } else {
+        }
+        else {
             Write-Info "[DRY RUN] Would create R2 bucket: $bucket"
         }
     }
@@ -215,7 +230,8 @@ if (-not $SkipBuild) {
     if (-not $DryRun) {
         npm install
         Write-Success "Dependencies installed"
-    } else {
+    }
+    else {
         Write-Info "[DRY RUN] Would run: npm install"
     }
 }
@@ -229,10 +245,12 @@ if (-not $SkipBuild) {
         try {
             npm run typecheck
             Write-Success "Type checking passed"
-        } catch {
+        }
+        catch {
             Write-Warning-Custom "Type checking found issues. Review output above."
         }
-    } else {
+    }
+    else {
         Write-Info "[DRY RUN] Would run: npm run typecheck"
     }
 }
@@ -247,41 +265,45 @@ if (-not $SkipBuild) {
         Write-Success "Build completed"
 
         # Verify build output
-        if (Test-Path "build/client") {
-            Write-Success "Build output verified: build/client directory exists"
-        } else {
+        if (Test-Path "build/worker") {
+            Write-Success "Build output verified: build/worker directory exists"
+        }
+        else {
             Write-Error-Custom "Build output directory not found!"
             exit 1
         }
-    } else {
+    }
+    else {
         Write-Info "[DRY RUN] Would run: npm run build"
     }
 }
 
-# Step 10: Deploy to Cloudflare Pages
-Write-Step "Step 10: Deploying to Cloudflare Pages"
+# Step 10: Deploy to Cloudflare Workers
+Write-Step "Step 10: Deploying to Cloudflare Workers"
 
 if (-not $DryRun) {
-    Write-Info "Deploying to Cloudflare Pages..."
+    Write-Info "Deploying to Cloudflare Workers..."
 
-    # Deploy using wrangler pages deploy
-    $deployResult = npx wrangler pages deploy ./build/client --project-name=$PAGES_PROJECT_NAME
+    # Deploy using wrangler deploy for Workers
+    $deployResult = npx wrangler deploy --account-id $WORKERS_ACCOUNT_ID
 
     if ($LASTEXITCODE -eq 0) {
-        Write-Success "Successfully deployed to Cloudflare Pages"
+        Write-Success "Successfully deployed to Cloudflare Workers"
         Write-Host $deployResult
 
         # Extract deployment URL
-        $deploymentUrl = ($deployResult | Select-String -Pattern 'https://[^\s]+\.pages\.dev').Matches.Value
+        $deploymentUrl = ($deployResult | Select-String -Pattern 'https://[^\s]+\.workers\.dev').Matches.Value
         if ($deploymentUrl) {
             Write-Success "Deployment URL: $deploymentUrl"
         }
-    } else {
+    }
+    else {
         Write-Error-Custom "Deployment failed"
         exit 1
     }
-} else {
-    Write-Info "[DRY RUN] Would run: npx wrangler pages deploy ./build/client --project-name=$PAGES_PROJECT_NAME"
+}
+else {
+    Write-Info "[DRY RUN] Would run: npx wrangler deploy --account-id $WORKERS_ACCOUNT_ID"
 }
 
 # Step 11: Verify Deployment
@@ -289,16 +311,18 @@ Write-Step "Step 11: Deployment Verification"
 
 if (-not $DryRun) {
     Write-Info "Fetching deployment list..."
-    npx wrangler pages deployment list --project-name=$PAGES_PROJECT_NAME
+    npx wrangler deployments list
 
     Write-Info "Testing database connection..."
     try {
         npx wrangler d1 execute $DB_NAME --command="SELECT COUNT(*) as count FROM professionals;"
         Write-Success "Database connection verified"
-    } catch {
+    }
+    catch {
         Write-Warning-Custom "Database query failed. Tables may not be initialized yet."
     }
-} else {
+}
+else {
     Write-Info "[DRY RUN] Would verify deployment"
 }
 
@@ -313,12 +337,11 @@ Write-Host @"
 
 📝 Next Steps:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 1. 🔍 Monitor real-time errors:
-   npx wrangler pages deployment tail --project-name=$PAGES_PROJECT_NAME
+   npx wrangler tail
 
 2. 📊 Check deployment status:
-   npx wrangler pages deployment list --project-name=$PAGES_PROJECT_NAME
+   npx wrangler deployments list
 
 3. 💾 Query database:
    npx wrangler d1 execute $DB_NAME --command="SELECT COUNT(*) FROM professionals;"
@@ -331,15 +354,13 @@ Write-Host @"
 
 🔗 Useful Commands:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-View logs:      npx wrangler pages deployment tail
-List projects:  npx wrangler pages project list
+View logs:      npx wrangler tail
+List projects:  npx wrangler deployments list
 Check DB stats: npm run monitor:db
 Import data:    npm run import:test
 
 📚 Documentation:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 • CLAUDE.md - AI assistant guide
 • README.md - Project overview
 • docs/UNIFIED_PLATFORM_ARCHITECTURE.md - System architecture
@@ -351,3 +372,9 @@ if ($DryRun) {
 }
 
 Write-Success "Deployment script completed!"
+
+# IMPORTANT NOTES:
+# This project has migrated from Cloudflare Pages to Cloudflare Workers
+# All deployment commands now use `wrangler deploy` instead of `wrangler pages deploy`
+# The build output directory is now `build/server` instead of `build/client`
+# Account ID: af57e902fd9dcaad7484a7195ac0f536 (Aura Media Studios)

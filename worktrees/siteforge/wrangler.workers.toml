@@ -3,7 +3,8 @@
 
 name = "estateflow"
 compatibility_date = "2024-11-28"
-pages_build_output_dir = "build/client"
+main = "build/server/index.js"
+account_id = "af57e902fd9dcaad7484a7195ac0f536"
 compatibility_flags = ["nodejs_compat"]
 
 # Environment Variables
@@ -72,16 +73,6 @@ binding = "AI"
 [analytics]
 enabled = true
 
-# Durable Objects for real-time features
-[[durable_objects.bindings]]
-name = "SESSION"
-class_name = "SessionManager"
-script_name = "estateflow"
-
-[[durable_objects.bindings]]
-name = "RATE_LIMITER"
-class_name = "RateLimiter"
-script_name = "estateflow"
 
 # Service bindings for microservices
 [[services]]
@@ -130,10 +121,6 @@ name = "estateflow-dev"
 [env.development.vars]
 ENVIRONMENT = "development"
 PLATFORM_URL = "http://localhost:8788"
-
-# Site configuration
-[site]
-bucket = "./build/client"
 
 # Build configuration
 [build]

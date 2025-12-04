@@ -1,0 +1,65 @@
+name = "progeodata-seed"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+account_id = "af57e902fd9dcaad7484a7195ac0f536"
+
+# Queue producer binding
+[[queues.producers]]
+queue = "progeodata-zip-queue"
+binding = "ZIP_QUEUE"
+
+# D1 Database
+[[d1_databases]]
+binding = "DB"
+database_name = "progeodata"
+database_id = "YOUR_DATABASE_ID_HERE"
+
+# Environment variables
+[vars]
+BATCH_SIZE = "100"
+STATES = "FL,TX,CA"
+
+# Stage 1: Test with 10 ZIPs
+[env.stage1]
+name = "progeodata-seed-stage1"
+vars = {
+  BATCH_SIZE = "10",
+  STATES = "FL",
+  ZIP_LIMIT = "10"
+}
+
+# Stage 2: Test with 100 ZIPs
+[env.stage2]
+name = "progeodata-seed-stage2"
+vars = {
+  BATCH_SIZE = "50",
+  STATES = "FL",
+  ZIP_LIMIT = "100"
+}
+
+# Stage 3: Test with 1000 ZIPs
+[env.stage3]
+name = "progeodata-seed-stage3"
+vars = {
+  BATCH_SIZE = "100",
+  STATES = "FL,TX",
+  ZIP_LIMIT = "1000"
+}
+
+# Stage 4: Test with 10000 ZIPs
+[env.stage4]
+name = "progeodata-seed-stage4"
+vars = {
+  BATCH_SIZE = "250",
+  STATES = "FL,TX,CA",
+  ZIP_LIMIT = "10000"
+}
+
+# Production: All ZIPs
+[env.production]
+name = "progeodata-seed-production"
+vars = {
+  BATCH_SIZE = "500",
+  STATES = "FL,TX,CA",
+  ZIP_LIMIT = "0"
+}

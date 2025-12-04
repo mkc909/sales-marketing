@@ -2,10 +2,16 @@ name = "scraper-browser"
 main = "src/index.ts"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
+account_id = "af57e902fd9dcaad7484a7195ac0f536"
 
 # Browser Rendering API binding - automatically bills $5/month + usage when used
 [browser]
 binding = "BROWSER"
+
+# KV namespace for caching
+[[kv_namespaces]]
+binding = "CACHE"
+id = "cd5af583b89640328e24a9cf878f9091"
 
 # Environment variables
 [vars]

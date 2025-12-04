@@ -1,0 +1,48 @@
+name = "progeodata-coordinator"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+account_id = "af57e902fd9dcaad7484a7195ac0f536"
+
+# Cron trigger - every minute
+[triggers]
+crons = ["* * * * *"]
+
+# Service binding to seed worker
+[[services]]
+binding = "SEED_WORKER"
+service = "progeodata-seed"
+environment = "production"
+
+# D1 Database
+[[d1_databases]]
+binding = "DB"
+database_name = "progeodata"
+database_id = "YOUR_DATABASE_ID_HERE"
+
+# Environment variables
+[vars]
+MIN_QUEUE_DEPTH = "100"
+MAX_QUEUE_DEPTH = "10000"
+SEED_THRESHOLD = "50"
+ALERT_THRESHOLD_ERROR_RATE = "0.1"
+ALERT_THRESHOLD_QUEUE_STALE_MINUTES = "30"
+SEED_WORKER_URL = "https://progeodata-seed.salescatalyst.workers.dev"
+
+# Development
+[env.development]
+name = "progeodata-coordinator-dev"
+vars = {
+  DEBUG = "true",
+  MIN_QUEUE_DEPTH = "10",
+  SEED_THRESHOLD = "5",
+  ALERT_THRESHOLD_ERROR_RATE = "0.25"
+}
+
+# Production
+[env.production]
+name = "progeodata-coordinator-production"
+vars = {
+  MIN_QUEUE_DEPTH = "100",
+  MAX_QUEUE_DEPTH = "10000",
+  SEED_THRESHOLD = "50"
+}

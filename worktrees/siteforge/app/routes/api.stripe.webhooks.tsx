@@ -5,7 +5,7 @@ import {
     handleSubscriptionUpdate,
     handleSubscriptionDeletion,
     getStripe
-} from "~/lib/stripe.server";
+} from "../lib/stripe.server";
 import Stripe from 'stripe';
 
 export async function action({ request, context }: ActionFunctionArgs) {

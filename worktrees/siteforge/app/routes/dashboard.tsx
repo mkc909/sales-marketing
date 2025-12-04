@@ -7,7 +7,7 @@ import {
     getUserSubscription,
     getUserSearchHistory,
     checkRateLimit
-} from "~/lib/auth.server";
+} from "../lib/auth.server";
 import {
     User,
     Search,

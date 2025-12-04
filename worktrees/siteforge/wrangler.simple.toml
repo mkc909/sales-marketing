@@ -1,0 +1,5 @@
+name = "progeodata"
+compatibility_date = "2024-11-28"
+main = "build/server/index.js"
+account_id = "af57e902fd9dcaad7484a7195ac0f536"
+compatibility_flags = ["nodejs_compat"]

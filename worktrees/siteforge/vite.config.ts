@@ -23,6 +23,12 @@ export default defineConfig({
     minify: true,
     rollupOptions: {
       external: [],
+      output: {
+        format: "esm",
+        entryFileNames: "[name].js",
+        chunkFileNames: "[name]-[hash].js",
+        assetFileNames: "assets/[name]-[hash][extname]"
+      }
     }
   },
   optimizeDeps: {
@@ -35,5 +41,8 @@ export default defineConfig({
   resolve: {
     mainFields: ["browser", "module", "main"],
     conditions: ["worker", "import"],
+    alias: {
+      "~": "./app",
+    },
   },
 });

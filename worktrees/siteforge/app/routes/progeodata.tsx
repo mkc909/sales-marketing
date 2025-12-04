@@ -1,16 +1,16 @@
 import { useState } from "react";
 import { json, redirect, type LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { useLoaderData, Form, Link } from "@remix-run/react";
-import { SearchForm } from "~/components/progeodata/SearchForm";
-import { ResultsTable } from "~/components/progeodata/ResultsTable";
-import { BulkExportModal } from "~/components/progeodata/BulkExportModal";
+import { SearchForm } from "../components/progeodata/SearchForm";
+import { ResultsTable } from "../components/progeodata/ResultsTable";
+import { BulkExportModal } from "../components/progeodata/BulkExportModal";
 import {
     getSessionByToken,
     getUserSubscription,
     consumeCredits,
     recordSearchHistory,
     checkRateLimit
-} from "~/lib/auth.server";
+} from "../lib/auth.server";
 
 // User tier configuration
 const USER_TIERS = {

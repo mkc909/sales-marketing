@@ -1,0 +1,21 @@
+{
+  "name": "progeodata-export",
+  "version": "1.0.0",
+  "description": "Data export API for ProGeoData",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "build": "tsc",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "papaparse": "^5.4.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.0.0",
+    "@types/papaparse": "^5.3.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "wrangler": "^3.0.0"
+  }
+}

@@ -1,4 +1,4 @@
-# EstateFlow Deployment - Quick Command Reference
+# EstateFlow Deployment - Quick Command Reference (Workers Edition)
 
 **Project Directory**: `C:\dev\GITHUB_MKC909_REPOS\sales-marketing\worktrees\siteforge`
 
@@ -98,21 +98,21 @@ npm run typecheck
 npm run build
 ```
 
-### 🔟 Deploy to Cloudflare Pages
+### 🔟 Deploy to Cloudflare Workers
 ```powershell
-npx wrangler pages deploy ./build/client --project-name=estateflow
+npx wrangler deploy --account-id af57e902fd9dcaad7484a7195ac0f536
 ```
 
 ### 1️⃣1️⃣ Verify Deployment
 ```powershell
 # List deployments
-npx wrangler pages deployment list --project-name=estateflow
+npx wrangler deployments list
 
 # Test database
 npx wrangler d1 execute estateflow-db --command="SELECT COUNT(*) FROM professionals;"
 
 # Monitor logs
-npx wrangler pages deployment tail --project-name=estateflow
+npx wrangler tail
 ```
 
 ---
@@ -134,13 +134,13 @@ npx wrangler d1 execute estateflow-db --command="SELECT industry, COUNT(*) as co
 ### Check Deployments
 ```powershell
 # List all deployments
-npx wrangler pages deployment list --project-name=estateflow
+npx wrangler deployments list
 
 # Get latest deployment
-npx wrangler pages deployment list --project-name=estateflow | Select-Object -First 1
+npx wrangler deployments list | Select-Object -First 1
 
 # View deployment logs
-npx wrangler pages deployment tail --project-name=estateflow
+npx wrangler tail
 ```
 
 ### Check Infrastructure
@@ -193,7 +193,7 @@ npm run smoke-test
 ### Real-time Monitoring
 ```powershell
 # Monitor all logs
-npx wrangler pages deployment tail --project-name=estateflow
+npx wrangler tail
 
 # Monitor errors only (using npm script)
 npm run monitor:errors
@@ -205,7 +205,7 @@ npm run monitor:db
 ### Check Health
 ```powershell
 # Replace with your deployment URL
-curl https://YOUR-DEPLOYMENT-URL.pages.dev/api/health
+curl https://YOUR-DEPLOYMENT-URL.workers.dev/api/health
 ```
 
 ---
@@ -281,7 +281,7 @@ npm run db:reset          # Reset database
 npm run db:backup         # Backup database
 
 # Deployment
-npm run deploy            # Deploy to Pages
+npm run deploy            # Deploy to Workers
 
 # Monitoring
 npm run monitor:errors    # Real-time error monitoring
@@ -312,20 +312,20 @@ npx wrangler d1 create estateflow-db
 npm run db:migrate
 npm install
 npm run build
-npx wrangler pages deploy ./build/client --project-name=estateflow
+npx wrangler deploy --account-id af57e902fd9dcaad7484a7195ac0f536
 ```
 
 ### Subsequent Deployments
 ```powershell
 cd C:\dev\GITHUB_MKC909_REPOS\sales-marketing\worktrees\siteforge
 npm run build
-npx wrangler pages deploy ./build/client --project-name=estateflow
+npx wrangler deploy --account-id af57e902fd9dcaad7484a7195ac0f536
 ```
 
 ### Quick Update Deployment
 ```powershell
 cd C:\dev\GITHUB_MKC909_REPOS\sales-marketing\worktrees\siteforge
-npm install && npm run build && npx wrangler pages deploy ./build/client --project-name=estateflow
+npm install && npm run build && npx wrangler deploy --account-id af57e902fd9dcaad7484a7195ac0f536
 ```
 
 ---
@@ -335,10 +335,10 @@ npm install && npm run build && npx wrangler pages deploy ./build/client --proje
 ### View Detailed Logs
 ```powershell
 # Tail logs with formatting
-npx wrangler pages deployment tail --project-name=estateflow --format pretty
+npx wrangler tail --format pretty
 
 # Filter for errors only
-npx wrangler pages deployment tail --project-name=estateflow | Select-String "ERROR"
+npx wrangler tail | Select-String "ERROR"
 ```
 
 ### Database Debugging
@@ -388,14 +388,14 @@ npx wrangler d1 execute estateflow-db --command="SELECT * FROM error_logs ORDER 
 ### If Deployment is Broken
 ```powershell
 # 1. Check deployment status
-npx wrangler pages deployment list --project-name=estateflow
+npx wrangler deployments list
 
 # 2. Rollback to previous deployment (if needed)
 # Get deployment ID from list above, then:
-npx wrangler pages deployment promote <deployment-id> --project-name=estateflow
+npx wrangler rollback --to <deployment-id>
 
 # 3. View error logs
-npx wrangler pages deployment tail --project-name=estateflow
+npx wrangler tail
 ```
 
 ### If Database is Corrupted
@@ -413,6 +413,8 @@ npm run db:migrate
 
 ---
 
-**Last Updated**: 2024-11-30
+**Last Updated**: 2025-12-03
 **Deployment Script**: `deploy-windows.ps1`
 **Full Checklist**: `DEPLOYMENT_CHECKLIST.md`
+
+**IMPORTANT**: This project has migrated from Cloudflare Pages to Cloudflare Workers. All `wrangler pages` commands have been replaced with `wrangler` commands for Workers deployment.

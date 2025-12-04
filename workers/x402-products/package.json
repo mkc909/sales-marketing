@@ -1,0 +1,19 @@
+{
+    "name": "x402-products",
+    "version": "1.0.0",
+    "description": "ProGeoData x402 Product Management System",
+    "main": "index.js",
+    "scripts": {
+        "start": "wrangler dev",
+        "deploy": "wrangler deploy",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "dependencies": {
+        "itty-router": "^4.0.21"
+    },
+    "devDependencies": {},
+    "type": "module",
+    "engines": {
+        "node": ">=18.0.0"
+    }
+}

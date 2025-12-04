@@ -1,0 +1,31 @@
+name = "x402-products"
+main = "index.js"
+compatibility_date = "2025-12-03"
+account_id = "af57e902fd9dcaad7484a7195ac0f536"
+
+# D1 Database for product management
+[[d1_databases]]
+binding = "PRODUCTS_DB"
+database_name = "x402-products-db"
+database_id = "109e374b-b2a8-4d5a-838a-c2c2e881a0c7"
+
+# Service binding to x402 API
+[[services]]
+binding = "X402_API"
+service = "x402-api"
+environment = "production"
+
+# Route configuration
+routes = [
+    { pattern = "products.progeodata.com/*", zone_name = "progeodata.com" }
+]
+
+# Environment variables
+[vars]
+X402_VERSION = "1"
+DEFAULT_CURRENCY = "base"
+API_VERSION = "v1"
+
+# Production environment
+[env.production]
+vars = { ENVIRONMENT = "production" }

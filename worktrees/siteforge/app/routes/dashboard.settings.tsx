@@ -8,7 +8,7 @@ import {
     hashPassword,
     verifyPassword,
     updateUserStripeInfo
-} from "~/lib/auth.server";
+} from "../lib/auth.server";
 import {
     User,
     Mail,

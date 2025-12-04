@@ -7,7 +7,7 @@ import {
     checkRateLimit,
     getUserSubscription,
     getUserById
-} from "~/lib/auth.server";
+} from "../lib/auth.server";
 
 export async function action({ request, context }: ActionFunctionArgs) {
     if (request.method !== "POST") {

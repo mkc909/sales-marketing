@@ -1,7 +1,7 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
-import { getSessionByToken } from "~/lib/auth.server";
-import { createCheckoutSession, STRIPE_PLANS, type PlanType } from "~/lib/stripe.server";
+import { getSessionByToken } from "../lib/auth.server";
+import { createCheckoutSession, STRIPE_PLANS, type PlanType } from "../lib/stripe.server";
 
 interface CheckoutRequest {
     planType: string;

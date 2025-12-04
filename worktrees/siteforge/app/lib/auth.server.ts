@@ -367,9 +367,10 @@ export async function checkRateLimit(
 
 // Google OAuth utilities
 export function generateGoogleAuthUrl(context: AppLoadContext, redirectUri?: string) {
-    const clientId = context.env.GOOGLE_CLIENT_ID || '';
-    const baseUrl = context.env.BASE_URL || 'http://localhost:8788';
-    const callbackUrl = redirectUri || `${baseUrl}/auth/google/callback`;
+    const env = context?.env || {};
+    const clientId = env.GOOGLE_CLIENT_ID || '';
+    const baseUrl = env.BASE_URL || 'http://localhost:8788';
+    const callbackUrl = redirectUri || `${baseUrl}/auth/google`;
 
     const params = new URLSearchParams({
         client_id: clientId,

@@ -2,8 +2,9 @@ import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import {
     createOrUpdateGoogleUser,
-    createSession
-} from "~/lib/auth.server";
+    createSession,
+    generateGoogleAuthUrl
+} from "../lib/auth.server";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
     const url = new URL(request.url);
@@ -16,17 +17,39 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         return redirect(`/auth/login?error=${encodeURIComponent(error)}`);
     }
 
+    // Check if context.env is available (might not be in dev environment)
+    const env = context?.env;
+
+    // If this is the initial request (no code parameter), initiate OAuth flow
+    if (!code) {
+        // Generate a random state for CSRF protection
+        const state = crypto.randomUUID();
+
+        // Store the state in KV for validation during callback (if KV is available)
+        if (env?.LINKS) {
+            await env.LINKS.put(`oauth_state_${state}`, "valid", {
+                expirationTtl: 3600 // 1 hour expiration
+            });
+        }
+
+        // Generate the Google OAuth URL with the state parameter
+        const authUrl = generateGoogleAuthUrl(context);
+        const googleUrl = new URL(authUrl);
+        googleUrl.searchParams.set('state', state);
+
+        // Redirect to Google's OAuth endpoint
+        return redirect(googleUrl.toString());
+    }
+
     // Validate state parameter (CSRF protection)
-    const storedState = await context.env.LINKS.get(`oauth_state_${state}`);
+    const storedState = env?.LINKS ? await env.LINKS.get(`oauth_state_${state}`) : null;
     if (!storedState) {
         return redirect("/auth/login?error=Invalid OAuth state");
     }
 
     // Clean up stored state
-    await context.env.LINKS.delete(`oauth_state_${state}`);
-
-    if (!code) {
-        return redirect("/auth/login?error=No authorization code received");
+    if (env?.LINKS) {
+        await env.LINKS.delete(`oauth_state_${state}`);
     }
 
     try {

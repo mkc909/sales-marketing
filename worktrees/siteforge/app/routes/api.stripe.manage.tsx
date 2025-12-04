@@ -1,7 +1,7 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { getSessionByToken, getUserById } from "~/lib/auth.server";
-import { getStripe, getUserSubscriptions } from "~/lib/stripe.server";
+import { getSessionByToken, getUserById } from "../lib/auth.server";
+import { getStripe, getUserSubscriptions } from "../lib/stripe.server";
 
 interface SubscriptionManageRequest {
     action: 'cancel' | 'update' | 'reactivate';

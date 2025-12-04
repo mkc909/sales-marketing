@@ -1,0 +1,1 @@
+'{"name": "ProGeoData Search API", "description": "Access to real estate professional search", "type": "api_access", "pricing_model": "pay_per_use", "base_price": "0.02", "x402_endpoint": "/v1/search"}'  

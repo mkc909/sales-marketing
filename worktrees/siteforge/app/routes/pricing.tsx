@@ -25,7 +25,7 @@ const ProGeoDataFeatureFlags = {
         return Boolean(features[featurePath as keyof typeof features]);
     }
 };
-import { getSessionByToken } from "~/lib/auth.server";
+import { getSessionByToken } from "../lib/auth.server";
 
 export const meta: MetaFunction = () => {
     return [

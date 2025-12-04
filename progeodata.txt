@@ -1,0 +1,41 @@
+; BIND zone file for progeodata.com
+; Generated for Cloudflare DNS import
+; Nameservers: keira.ns.cloudflare.com, mitchell.ns.cloudflare.com
+
+$ORIGIN progeodata.com.
+$TTL 300
+
+; SOA record (Cloudflare will auto-generate, placeholder shown)
+@       IN      SOA     keira.ns.cloudflare.com. hostmaster.progeodata.com. (
+                        2025120201      ; Serial number (YYYYMMDDNN)
+                        10000           ; Refresh (seconds)
+                        2400            ; Retry (seconds)
+                        604800          ; Expire (seconds)
+                        3600            ; Minimum TTL (seconds)
+                        )
+
+; Nameservers
+@       IN      NS      keira.ns.cloudflare.com.
+@       IN      NS      mitchell.ns.cloudflare.com.
+
+; API subdomain - Points to Cloudflare Worker
+api     IN      CNAME   scraper-api.magicmike.workers.dev.
+
+; WWW subdomain - Points to root domain
+www     IN      CNAME   progeodata.com.
+
+; Root domain - Placeholder for future Cloudflare Pages deployment
+; Note: This will be updated when Pages project is created
+@       IN      CNAME   pages-dev.progeodata.pages.dev.
+
+; Additional common records (optional but recommended)
+; MX record for email (placeholder)
+@       IN      MX      10   mail.progeodata.com.
+
+; TXT records for verification and security
+@       IN      TXT     "v=spf1 include:_spf.cloudflare.net ~all"
+_dmarc  IN      TXT     "v=DMARC1; p=none; rua=mailto:dmarc@progeodata.com"
+
+; Security and validation records
+@       IN      CAA     0 issue "letsencrypt.org"
+@       IN      CAA     0 issuewild "letsencrypt.org"

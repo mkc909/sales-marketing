@@ -1,0 +1,120 @@
+name = "progeodata-consumer"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+account_id = "af57e902fd9dcaad7484a7195ac0f536"
+
+# Queue consumer binding
+[[queues.consumers]]
+queue = "progeodata-zip-queue"
+max_batch_size = 10
+max_batch_timeout = 30
+max_retries = 3
+dead_letter_queue = "progeodata-dlq"
+
+# Service binding to existing scraper-browser worker
+[[services]]
+binding = "SCRAPER"
+service = "scraper-browser"
+environment = "production"
+
+# D1 Database - shared with siteforge
+[[d1_databases]]
+binding = "DB"
+database_name = "progeodata"
+database_id = "YOUR_DATABASE_ID_HERE"
+
+# Environment variables
+[vars]
+RATE_LIMIT_PER_SECOND = "1"
+WORKER_ID = "consumer-01"
+MAX_RETRIES = "3"
+SCRAPER_URL = "https://scraper-browser.salescatalyst.workers.dev"
+
+# Development environment
+[env.development]
+name = "progeodata-consumer-dev"
+vars = {
+  DEBUG = "true",
+  RATE_LIMIT_PER_SECOND = "0.5",
+  WORKER_ID = "consumer-dev"
+}
+
+# Production - Worker 1
+[env.production]
+name = "progeodata-consumer-01"
+vars = {
+  WORKER_ID = "consumer-01",
+  RATE_LIMIT_PER_SECOND = "1"
+}
+
+# Production - Worker 2
+[env.worker02]
+name = "progeodata-consumer-02"
+vars = {
+  WORKER_ID = "consumer-02",
+  RATE_LIMIT_PER_SECOND = "1"
+}
+
+# Production - Worker 3
+[env.worker03]
+name = "progeodata-consumer-03"
+vars = {
+  WORKER_ID = "consumer-03",
+  RATE_LIMIT_PER_SECOND = "1"
+}
+
+# Production - Worker 4
+[env.worker04]
+name = "progeodata-consumer-04"
+vars = {
+  WORKER_ID = "consumer-04",
+  RATE_LIMIT_PER_SECOND = "1"
+}
+
+# Production - Worker 5
+[env.worker05]
+name = "progeodata-consumer-05"
+vars = {
+  WORKER_ID = "consumer-05",
+  RATE_LIMIT_PER_SECOND = "1"
+}
+
+# Production - Worker 6
+[env.worker06]
+name = "progeodata-consumer-06"
+vars = {
+  WORKER_ID = "consumer-06",
+  RATE_LIMIT_PER_SECOND = "1"
+}
+
+# Production - Worker 7
+[env.worker07]
+name = "progeodata-consumer-07"
+vars = {
+  WORKER_ID = "consumer-07",
+  RATE_LIMIT_PER_SECOND = "1"
+}
+
+# Production - Worker 8
+[env.worker08]
+name = "progeodata-consumer-08"
+vars = {
+  WORKER_ID = "consumer-08",
+  RATE_LIMIT_PER_SECOND = "1"
+}
+
+# Production - Worker 9
+[env.worker09]
+name = "progeodata-consumer-09"
+vars = {
+  WORKER_ID = "consumer-09",
+  RATE_LIMIT_PER_SECOND = "1"
+}
+
+# Production - Worker 10
+[env.worker10]
+name = "progeodata-consumer-10"
+vars = {
+  WORKER_ID = "consumer-10",
+  RATE_LIMIT_PER_SECOND = "1"
+}

@@ -9,7 +9,7 @@ import {
     hashPassword,
     verifyPassword,
     createSession
-} from "~/lib/auth.server";
+} from "../lib/auth.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
     const url = new URL(request.url);

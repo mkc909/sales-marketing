@@ -1,0 +1,26 @@
+name = "x402-api"
+main = "index.js"
+compatibility_date = "2025-12-03"
+account_id = "af57e902fd9dcaad7484a7195ac0f536"
+
+# Service binding to existing scraper API
+[[services]]
+binding = "SCRAPER_API"
+service = "scraper-api"
+environment = "production"
+
+# Route configuration for custom domain
+routes = [
+    { pattern = "x402.progeodata.com/*", zone_name = "progeodata.com" }
+]
+
+# Environment variables
+[vars]
+X402_VERSION = "1"
+PRICING_SEARCH = "0.02"
+PRICING_ENRICHED = "0.10"
+PRICING_BULK = "0.01"
+
+# Production environment
+[env.production]
+vars = { ENVIRONMENT = "production" }
