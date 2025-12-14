@@ -122,3 +122,6 @@ workers/scraper-browser/node_modules/
 *.indented*
 *.typo
 fix-*.ps1
+
+# Git update log files
+git-update-log-*.txt
